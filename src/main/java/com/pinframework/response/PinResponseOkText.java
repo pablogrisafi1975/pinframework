@@ -1,0 +1,18 @@
+package com.pinframework.response;
+
+import java.net.HttpURLConnection;
+
+import com.pinframework.PinResponse;
+import com.pinframework.impl.PinRenderTextUtf8;
+
+public class PinResponseOkText extends PinResponse {
+
+	private PinResponseOkText(String text) {
+		super(HttpURLConnection.HTTP_OK, text, PinRenderTextUtf8.INSTANCE);
+	}
+
+	public static PinResponseOkText of(String text) {
+		return new PinResponseOkText(text);
+	}
+
+}
