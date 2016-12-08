@@ -31,6 +31,8 @@ public class PinServer {
 	private final Map<String, PinAdapter> adaptersByPath = new HashMap<>();
 	private final int port;
 	private final boolean restrictedCharset;
+	
+	//TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
 
 	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
 			File externalFolderCanonical) {
