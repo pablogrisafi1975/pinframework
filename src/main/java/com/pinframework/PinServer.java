@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import sun.net.httpserver.HttpsServerImpl;
@@ -31,6 +32,8 @@ public class PinServer {
 	private final Map<String, PinAdapter> adaptersByPath = new HashMap<>();
 	private final int port;
 	private final boolean restrictedCharset;
+
+	private PinRedirectHandler redirectHandler;
 	
 	//TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
 
@@ -40,18 +43,31 @@ public class PinServer {
 		this.restrictedCharset = restrictedCharset;
 		this.appContext = appContext;
 		this.port = httpServer.getAddress().getPort();
-		if (webjarsSupportEnabled) {
-			httpServer.createContext(this.appContext + "webjars", (ex -> {
-				resourceFolder(ex, "META-INF/resources/webjars", null);
-			}));
-		}
-		httpServer.createContext(this.appContext, (ex -> {
-			// File externalPath = new
-			// File("/home/pablogrisafi/workspaces/op-txfinder/op-txfinder-pin/external");
-			resourceFolder(ex, "static/", externalFolderCanonical);
-		}));
-
+		this.redirectHandler = new PinRedirectHandler();
+		httpServer.createContext(appContext, redirectHandler);
+//		if (webjarsSupportEnabled) {
+//			httpServer.createContext(this.appContext + "webjars", (ex -> {
+//				resourceFolder(ex, "META-INF/resources/webjars", null);
+//			}));
+//		}
+//		httpServer.createContext(this.appContext, (ex -> {
+//			// File externalPath = new
+//			// File("/home/pablogrisafi/workspaces/op-txfinder/op-txfinder-pin/external");
+//			resourceFolder(ex, "static/", externalFolderCanonical);
+//		}));
 	}
+	
+	public PinServer on(PinRequestPredicate requestPredicate, PinHandler handler){
+		redirectHandler.on(requestPredicate, handler);
+		return this;
+	}
+	
+	public PinServer getJson(String route, PinHandler handler){
+		PinRequestPredicate requestPredicate = new PinGetJsonRequestPredicate(route);
+		redirectHandler.on(requestPredicate, handler);
+		return this;
+	}
+	
 
 	
 	public PinServer on(String method, String path, PinHandler pinHandler) {
