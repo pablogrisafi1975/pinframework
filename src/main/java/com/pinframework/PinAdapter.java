@@ -46,7 +46,8 @@ public class PinAdapter implements HttpHandler {
 			httpExchange.close();
 			return;
 		}
-		PinExchange pinExchange = new PinExchange(httpExchange, parameterNamesByMethod.get(method));
+		PinExchange pinExchange = new PinExchange(httpExchange, null);
+		//PinExchange pinExchange = new PinExchange(httpExchange, parameterNamesByMethod.get(method));
 		boolean keepResponseOpen = false;
 		try {
 			PinResponse pinResponse = pinHandler.handle(pinExchange);

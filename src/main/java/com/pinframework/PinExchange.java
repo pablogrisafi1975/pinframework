@@ -27,11 +27,10 @@ public class PinExchange {
 	private Map<String, Object> postParams;
 	private Map<String, String> pathParams;
 	private Map<String, FileItem> fileParams;
-	private final List<String> pathParamNames;
 
-	public PinExchange(HttpExchange httpExchange, List<String> pathParamNames) {
+	public PinExchange(HttpExchange httpExchange, Map<String, String> pathParams) {
 		this.httpExchange = httpExchange;
-		this.pathParamNames = pathParamNames;
+		this.pathParams = Collections.unmodifiableMap(pathParams);
 	}
 
 	public HttpExchange raw() {
@@ -47,10 +46,6 @@ public class PinExchange {
 	}
 
 	public Map<String, String> getPathParams() {
-		if (pathParams == null) {
-			pathParams = Collections.unmodifiableMap(PinUtils.splitPath(httpExchange.getRequestURI().getPath(),
-					httpExchange.getHttpContext().getPath(), pathParamNames));
-		}
 		return pathParams;
 	}
 

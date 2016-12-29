@@ -57,49 +57,54 @@ public class PinServer {
 //		}));
 	}
 	
-	public PinServer on(PinRequestPredicate requestPredicate, PinHandler handler){
+	public PinServer on(PinRequestMatcher requestPredicate, PinHandler handler){
 		redirectHandler.on(requestPredicate, handler);
 		return this;
 	}
-	
-	public PinServer getJson(String route, PinHandler handler){
-		PinRequestPredicate requestPredicate = new PinGetJsonRequestPredicate(route);
-		redirectHandler.on(requestPredicate, handler);
+	public PinServer onGet(String route, PinHandler handler){
+		PinRouteMatcher routeMatcher = new PinRouteMatcher("GET", route, appContext);
+		redirectHandler.on(routeMatcher, handler);
 		return this;
 	}
 	
-
-	
-	public PinServer on(String method, String path, PinHandler pinHandler) {
-		List<String> contextAndPathParameters = PinUtils.contextAndPathParameters(appContext, path);
-		String contextPath = contextAndPathParameters.get(0);
-		List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
-		PinAdapter pinAdapter = adaptersByPath.get(contextPath);
-		if (pinAdapter != null) {
-			pinAdapter.put(method, pathParameterNames, pinHandler);
-		} else {
-			pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler);
-			httpServer.createContext(contextPath, pinAdapter);
-			adaptersByPath.put(contextPath, pinAdapter);
-		}
-		return this;
-	}
-
-	public PinServer onGet(String path, PinHandler pinHandler) {
-		return on("GET", path, pinHandler);
-	}
-
-	public PinServer onPut(String path, PinHandler pinHandler) {
-		return on("PUT", path, pinHandler);
-	}
-
-	public PinServer onPost(String path, PinHandler pinHandler) {
-		return on("POST", path, pinHandler);
-	}
-
-	public PinServer onDelete(String path, PinHandler pinHandler) {
-		return on("DELETE", path, pinHandler);
-	}
+//	public PinServer getJson(String route, PinHandler handler){
+//		PinRequestPredicate requestPredicate = new PinGetJsonRequestPredicate(route);
+//		redirectHandler.on(requestPredicate, handler);
+//		return this;
+//	}
+//	
+//
+//	
+//	public PinServer on(String method, String path, PinHandler pinHandler) {
+//		List<String> contextAndPathParameters = PinUtils.contextAndPathParameters(appContext, path);
+//		String contextPath = contextAndPathParameters.get(0);
+//		List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
+//		PinAdapter pinAdapter = adaptersByPath.get(contextPath);
+//		if (pinAdapter != null) {
+//			pinAdapter.put(method, pathParameterNames, pinHandler);
+//		} else {
+//			pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler);
+//			httpServer.createContext(contextPath, pinAdapter);
+//			adaptersByPath.put(contextPath, pinAdapter);
+//		}
+//		return this;
+//	}
+//
+//	public PinServer onGet(String path, PinHandler pinHandler) {
+//		return on("GET", path, pinHandler);
+//	}
+//
+//	public PinServer onPut(String path, PinHandler pinHandler) {
+//		return on("PUT", path, pinHandler);
+//	}
+//
+//	public PinServer onPost(String path, PinHandler pinHandler) {
+//		return on("POST", path, pinHandler);
+//	}
+//
+//	public PinServer onDelete(String path, PinHandler pinHandler) {
+//		return on("DELETE", path, pinHandler);
+//	}
 
 	private void resourceFolder(HttpExchange ex, String resourceFolder, File externalFolder) throws IOException {
 		if (!"GET".equals(ex.getRequestMethod())) {
