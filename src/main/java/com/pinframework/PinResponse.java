@@ -4,17 +4,17 @@ public class PinResponse {
 
 	private final int status;
 	private final Object obj;
-	private final PinRender transformer;
+	private final PinRender render;
 
 	/**
 	 * @param status. If you don't have nice constants around, use java.net.HttpURLConnection
 	 * @param obj
-	 * @param transformer
+	 * @param render
 	 */
-	public PinResponse(int status, Object obj, PinRender transformer) {
+	public PinResponse(int status, Object obj, PinRender render) {
 		this.status = status;
 		this.obj = obj;
-		this.transformer = transformer;
+		this.render = render;
 	}
 
 	public int getStatus() {
@@ -26,7 +26,7 @@ public class PinResponse {
 	}
 
 	public PinRender getTransformer() {
-		return transformer;
+		return render;
 	}
 	
 	public boolean keepResponseOpen(){

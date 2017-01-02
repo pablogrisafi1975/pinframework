@@ -10,7 +10,7 @@ import com.pinframework.PinExchange;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinResponse;
 import com.pinframework.PinUtils;
-import com.pinframework.impl.PinRenderNull;
+import com.pinframework.render.PinRenderNull;
 import com.sun.net.httpserver.HttpExchange;
 
 @SuppressWarnings("restriction")

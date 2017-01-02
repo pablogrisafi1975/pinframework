@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class PinRouteMatcher implements PinRequestMatcher {
+public class PinRouteRequestMatcher implements PinRequestMatcher {
 
 	private final String method;
 	private final Pattern routePattern;
@@ -19,7 +19,7 @@ public class PinRouteMatcher implements PinRequestMatcher {
 	private final List<String> contentTypeList;
 	private final List<String> parameterNameList = new ArrayList<>();
 
-	public PinRouteMatcher(String method, String route, String appContext, String... contentType) {
+	public PinRouteRequestMatcher(String method, String route, String appContext, String... contentType) {
 		this.method = method;
 		// TODO: validar que los nombres sole tengan AZaz09 y empiecen con
 		// letras, ver

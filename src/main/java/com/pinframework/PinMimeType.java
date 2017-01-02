@@ -15,6 +15,8 @@ public class PinMimeType {
 	 * */
 	public static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
 
+	public static final String APPLICATION_JSON = "application/json";
+
 	private static final Map<String, String> MAP = new HashMap<>();
 
 	private PinMimeType(){

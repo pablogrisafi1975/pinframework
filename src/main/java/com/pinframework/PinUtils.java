@@ -152,10 +152,9 @@ public class PinUtils {
 	 * scheme to obtain the bytes for unsafe characters.
 	 * <p>
 	 * <em><strong>Note:</strong> The <a href=
-	 * "http://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars">
-	 * World Wide Web Consortium Recommendation</a> states that
-	 * UTF-8 should be used. Not doing so may introduce
-	 * incompatibilities.</em>
+	 * "http://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars"> World
+	 * Wide Web Consortium Recommendation</a> states that UTF-8 should be used.
+	 * Not doing so may introduce incompatibilities.</em>
 	 *
 	 * @param s
 	 *            {@code String} to be translated.
@@ -182,10 +181,9 @@ public class PinUtils {
 	 * "<i>{@code %xy}</i>".
 	 * <p>
 	 * <em><strong>Note:</strong> The <a href=
-	 * "http://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars">
-	 * World Wide Web Consortium Recommendation</a> states that
-	 * UTF-8 should be used. Not doing so may introduce
-	 * incompatibilities.</em>
+	 * "http://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars"> World
+	 * Wide Web Consortium Recommendation</a> states that UTF-8 should be used.
+	 * Not doing so may introduce incompatibilities.</em>
 	 *
 	 * @param s
 	 *            the {@code String} to decode
@@ -202,6 +200,17 @@ public class PinUtils {
 			LOG.error("Can not decode '{}'", string, e);
 			throw new PinUnsupportedEncodingRuntimeException(e);
 		}
+	}
+
+	public static String getFirst(Map<String, List<String>> map, String key) {
+		if (map.containsKey(key)) {
+			List<String> list = map.get(key);
+			if (list.isEmpty()) {
+				return null;
+			}
+			return list.get(0);
+		}
+		return null;
 	}
 
 }

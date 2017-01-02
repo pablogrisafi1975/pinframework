@@ -1,4 +1,4 @@
-package com.pinframework.impl;
+package com.pinframework.render;
 
 import java.io.IOException;
 import java.io.InputStream;

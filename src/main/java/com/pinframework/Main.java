@@ -1,5 +1,6 @@
 package com.pinframework;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.pinframework.response.PinResponseOkText;
@@ -18,15 +19,23 @@ public class Main {
 			public Map<String, String> extractPathParams(String route) {
 				return null;
 			}
-		}, pinExchange -> PinResponseOkText.of("hello-ok"));
+		}, pinExchange -> PinResponses.okText("hello-ok"));
 
 		pinServer.onGet("hello2", pinExchange -> PinResponseOkText.of("hello2-ok"));
 
 		pinServer.onGet("hello3/sub1", pinExchange -> PinResponseOkText.of("hello3-ok-sub1"));
 		pinServer.onGet("hello4/:param1",
-				pinExchange -> PinResponseOkText.of("hello4-ok-" + pinExchange.getPathParams().get("param1")));
-		pinServer.onGet("hello5/:param1/nada/:param2/nada",
-				pinExchange -> PinResponseOkText.of("hello5-ok-" + pinExchange.getPathParams().get("param1") + "+" + pinExchange.getPathParams().get("param2")));
+				pinExchange -> PinResponses.okText("hello4-ok-" + pinExchange.getPathParams().get("param1")));
+		pinServer.onGet("hello5/:param1/nada/:param2/nada", pinExchange -> PinResponses.okText("hello5-ok-"
+				+ pinExchange.getPathParams().get("param1") + "-" + pinExchange.getPathParams().get("param2")));
+
+		Map<String, String> map = new HashMap<>();
+		map.put("key0", "value0");
+		map.put("key1", "value1");
+
+		pinServer.onGet("hello6/json", pinExchange -> PinResponses.okJson(map));
+
+		pinServer.onGet("hello7/down", pinExchange -> PinResponses.okDownload("el ñu es lindo", "fileName.txt"));
 
 		pinServer.start();
 	}

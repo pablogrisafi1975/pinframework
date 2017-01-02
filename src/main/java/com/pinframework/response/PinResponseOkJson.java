@@ -3,7 +3,7 @@ package com.pinframework.response;
 import java.net.HttpURLConnection;
 
 import com.pinframework.PinResponse;
-import com.pinframework.impl.PinRenderJson;
+import com.pinframework.render.PinRenderJson;
 
 public class PinResponseOkJson extends PinResponse {
 

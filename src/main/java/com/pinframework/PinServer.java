@@ -29,7 +29,6 @@ public class PinServer {
 	 */
 	private final String appContext;
 	private final HttpServer httpServer;
-	private final Map<String, PinAdapter> adaptersByPath = new HashMap<>();
 	private final int port;
 	private final boolean restrictedCharset;
 
@@ -62,7 +61,7 @@ public class PinServer {
 		return this;
 	}
 	public PinServer onGet(String route, PinHandler handler){
-		PinRouteMatcher routeMatcher = new PinRouteMatcher("GET", route, appContext);
+		PinRouteRequestMatcher routeMatcher = new PinRouteRequestMatcher("GET", route, appContext);
 		redirectHandler.on(routeMatcher, handler);
 		return this;
 	}

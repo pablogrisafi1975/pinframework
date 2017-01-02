@@ -3,7 +3,7 @@ package com.pinframework.response;
 import java.net.HttpURLConnection;
 
 import com.pinframework.PinResponse;
-import com.pinframework.impl.PinRenderTextUtf8;
+import com.pinframework.render.PinRenderTextUtf8;
 
 public class PinResponseOkText extends PinResponse {
 
