@@ -6,15 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.pinframework.requestmatcher.PinRouteRequestMatcher;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import sun.net.httpserver.HttpsServerImpl;
@@ -31,18 +29,21 @@ public class PinServer {
 	private final HttpServer httpServer;
 	private final int port;
 	private final boolean restrictedCharset;
+	private final Gson gson;
 
 	private PinRedirectHandler redirectHandler;
+
 	
 	//TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
 
-	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
-			File externalFolderCanonical) {
+	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled, 
+			boolean uploadSupportEnabled, File externalFolderCanonical, Gson gson) {
 		this.httpServer = httpServer;
 		this.restrictedCharset = restrictedCharset;
 		this.appContext = appContext;
 		this.port = httpServer.getAddress().getPort();
-		this.redirectHandler = new PinRedirectHandler();
+		this.redirectHandler = new PinRedirectHandler(gson, uploadSupportEnabled);
+		this.gson = gson;
 		httpServer.createContext(appContext, redirectHandler);
 //		if (webjarsSupportEnabled) {
 //			httpServer.createContext(this.appContext + "webjars", (ex -> {

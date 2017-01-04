@@ -1,4 +1,4 @@
-package com.pinframework.exceptions;
+package com.pinframework.exception;
 
 import java.io.UnsupportedEncodingException;
 

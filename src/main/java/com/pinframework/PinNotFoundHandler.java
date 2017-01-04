@@ -3,7 +3,7 @@ package com.pinframework;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NotFoundHandler implements PinHandler {
+public class PinNotFoundHandler implements PinHandler {
 
 	@SuppressWarnings("restriction")
 	@Override

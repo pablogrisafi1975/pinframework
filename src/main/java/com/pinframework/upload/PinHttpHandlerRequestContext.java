@@ -1,10 +1,13 @@
-package com.pinframework;
+package com.pinframework.upload;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.fileupload.RequestContext;
 
+import com.pinframework.PinMimeType;
+import com.pinframework.PinUtils;
 import com.sun.net.httpserver.HttpExchange;
 
 @SuppressWarnings("restriction")
@@ -17,7 +20,7 @@ public class PinHttpHandlerRequestContext implements RequestContext {
 
     @Override
     public String getCharacterEncoding() {
-          return PinUtils.UTF_8; 
+          return StandardCharsets.UTF_8.name(); 
     }
 
     @Override

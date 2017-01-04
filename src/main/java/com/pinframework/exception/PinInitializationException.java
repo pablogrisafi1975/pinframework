@@ -1,4 +1,4 @@
-package com.pinframework.exceptions;
+package com.pinframework.exception;
 
 public class PinInitializationException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

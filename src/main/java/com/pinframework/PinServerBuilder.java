@@ -11,7 +11,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.pinframework.exceptions.PinInitializationException;
+import com.google.gson.Gson;
+import com.pinframework.exception.PinInitializationException;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 
@@ -27,9 +28,11 @@ public class PinServerBuilder {
 	private boolean restrictedCharset = true;
 	private String appContext = "";
 	private boolean webjarsSupportEnabled = true;
+	private boolean uploadSupportEnabled = false;
 	private String externalFolder = null;
 	private Executor executor = Executors.newFixedThreadPool(10);
 	private boolean httpsSupportEnabled = false;
+	private Gson gson = null;
 	// TODO: incluir un authenticator
 
 	/**
@@ -95,6 +98,19 @@ public class PinServerBuilder {
 	}
 
 	/**
+	 * Enable support for upload.<br>
+	 * For this to work you need to have commons-fileupload in you classpath
+	 * Default false
+	 * 
+	 * @param uploadSupportEnabled
+	 * @return this instance so you can keep building
+	 */
+	public PinServerBuilder uploadSupportEnabled(boolean uploadSupportEnabled) {
+		this.uploadSupportEnabled = uploadSupportEnabled;
+		return this;
+	}
+
+	/**
 	 * External folder for static files. If there is a file with the same name
 	 * and path in static resource folder and external folder the external file
 	 * is used<br>
@@ -137,6 +153,22 @@ public class PinServerBuilder {
 	}
 
 	/**
+	 * A Gson instance used to parse and render json objects.<br>
+	 * Default a Gson instance with support for
+	 * <ol>
+	 * <li>java.time.LocalDateTime as yyyyMMddTHH:mm:ss</li>
+	 * <li>java.time.ZonedDateTime as yyyyMMddTHH:mm:ss+OFF</li>
+	 * <ol>
+	 * 
+	 * @param gson
+	 * @return this instance so you can keep building
+	 */
+	public PinServerBuilder setGson(Gson gson) {
+		this.gson = gson;
+		return this;
+	}
+
+	/**
 	 * Enable https support<br>
 	 * Default false
 	 * 
@@ -151,7 +183,7 @@ public class PinServerBuilder {
 	public PinServer build() {
 		this.appContext = appContext == null || appContext.trim().length() == 0 ? "/"
 				: "/" + appContext.replaceAll("/", "") + "/";
-		
+
 		if (restrictedCharset && appContext != null) {
 			Matcher matcher = APP_CONTEXT_INVALID_CHARS_PATTERN.matcher(appContext);
 			if (matcher.matches()) {
@@ -185,18 +217,31 @@ public class PinServerBuilder {
 						"Invalid externalFolder '" + externalFolder + "'. It is not a folder");
 			}
 		}
-		
+		if (uploadSupportEnabled) {
+			try {
+				Class.forName("org.apache.commons.fileupload.FileItemFactory");
+			} catch (Exception ex) {
+				throw new PinInitializationException(
+						"If uploadSupport is enabled  you need to have commons-fileupload in your classpath");
+			}
+		}
+
+		if (gson == null) {
+			gson = PinGson.getInstance();
+		}
+
 		InetSocketAddress address = new InetSocketAddress(port);
 		HttpServer httpServer;
 		try {
-			httpServer = httpsSupportEnabled ? HttpsServer.create(address, maxBacklog) : HttpServer.create(address, maxBacklog);
+			httpServer = httpsSupportEnabled ? HttpsServer.create(address, maxBacklog)
+					: HttpServer.create(address, maxBacklog);
 		} catch (IOException e) {
-			throw new PinInitializationException(
-					"Can not create server", e);
-		} 
+			throw new PinInitializationException("Can not create server", e);
+		}
 		httpServer.setExecutor(executor);
 
-		PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical);
+		PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, uploadSupportEnabled,
+				externalFolderCanonical, gson);
 		return pinServer;
 	}
 

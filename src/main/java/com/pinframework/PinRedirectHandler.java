@@ -3,11 +3,15 @@ package com.pinframework;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.google.gson.Gson;
+import com.pinframework.requestmatcher.PinNotFoundRequestMatcher;
+import com.pinframework.upload.FileParam;
+import com.pinframework.upload.MultipartParams;
+import com.pinframework.upload.PinHttpHandlerRequestContext;
+import com.pinframework.upload.PinMutipartParamsParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -15,6 +19,25 @@ import com.sun.net.httpserver.HttpHandler;
 public class PinRedirectHandler implements HttpHandler {
 
 	private final Map<PinRequestMatcher, PinHandler> routeMap = Collections.synchronizedMap(new LinkedHashMap<>());
+
+	private final PinHandler notFoundHandler = new PinNotFoundHandler();
+
+	private final PinRequestMatcher notFoundRequestMatcher = new PinNotFoundRequestMatcher();
+
+	private final PinParamsParser paramsParser;
+
+	private final PinMutipartParamsParser multipartParamsParser;
+
+	private final Gson gson;
+
+	private final boolean uploadSupportEnabled;
+
+	public PinRedirectHandler(Gson gson, boolean uploadSupportEnabled) {
+		this.gson = gson;
+		this.uploadSupportEnabled = uploadSupportEnabled;
+		this.paramsParser = new PinParamsParser(gson);
+		this.multipartParamsParser = uploadSupportEnabled ? new PinMutipartParamsParser() : null;
+	}
 
 	public void on(PinRequestMatcher requestPredicate, PinHandler handler) {
 		routeMap.put(requestPredicate, handler);
@@ -24,7 +47,7 @@ public class PinRedirectHandler implements HttpHandler {
 	public void handle(HttpExchange httpExchange) throws IOException {
 		String route = httpExchange.getRequestURI().getPath();
 		String verb = httpExchange.getRequestMethod();
-		String contentType = httpExchange.getRequestHeaders().getFirst("ContentType");
+		String contentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
 
 		for (Map.Entry<PinRequestMatcher, PinHandler> entry : routeMap.entrySet()) {
 			PinRequestMatcher requestMatcher = entry.getKey();
@@ -35,16 +58,33 @@ public class PinRedirectHandler implements HttpHandler {
 			}
 		}
 
-		PinHandler notFoundHandler = new NotFoundHandler();
-		process(route, httpExchange, null, notFoundHandler);
+		process(route, httpExchange, notFoundRequestMatcher, notFoundHandler);
 	}
 
 	private void process(String route, HttpExchange httpExchange, PinRequestMatcher requestMatcher,
 			PinHandler pinHandler) {
-		Map<String, String> pathParams = requestMatcher == null ? Collections.emptyMap()
-				: requestMatcher.extractPathParams(route);
+		Map<String, String> pathParams = requestMatcher.extractPathParams(route);
+		
+		Map<String, List<String>> queryParams = paramsParser.queryParams(httpExchange.getRequestURI().getQuery());
 
-		PinExchange pinExchange = new PinExchange(httpExchange, pathParams);
+		String fullContentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+
+		Map<String, Object> postParams = null;
+		Map<String, FileParam> fileParams = Collections.emptyMap();
+		if (paramsParser.isMultipart(fullContentType)) {
+			if (uploadSupportEnabled) {
+				MultipartParams multipartParams = multipartParamsParser
+						.parse(new PinHttpHandlerRequestContext(httpExchange));
+				postParams = multipartParams.getPostParams();
+				fileParams = multipartParams.getFileParams();
+			} else {
+				// TODO: log.error()
+			}
+		} else {
+			postParams = paramsParser.postParams(fullContentType, httpExchange.getRequestBody());
+		}
+
+		PinExchange pinExchange = new PinExchange(httpExchange, pathParams, queryParams, postParams, fileParams);
 		boolean keepResponseOpen = false;
 		try {
 			PinResponse pinResponse = pinHandler.handle(pinExchange);

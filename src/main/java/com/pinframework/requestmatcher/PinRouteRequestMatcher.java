@@ -1,4 +1,4 @@
-package com.pinframework;
+package com.pinframework.requestmatcher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.pinframework.PinRequestMatcher;
 
 public class PinRouteRequestMatcher implements PinRequestMatcher {
 

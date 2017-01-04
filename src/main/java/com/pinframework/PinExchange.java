@@ -1,21 +1,10 @@
 package com.pinframework;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-
-import com.pinframework.exceptions.PinFileUploadRuntimeException;
+import com.pinframework.upload.FileParam;
 import com.sun.net.httpserver.HttpExchange;
 
 @SuppressWarnings("restriction")
@@ -26,22 +15,24 @@ public class PinExchange {
 	private Map<String, List<String>> queryParams;
 	private Map<String, Object> postParams;
 	private Map<String, String> pathParams;
-	private Map<String, FileItem> fileParams;
+	private Map<String, FileParam> fileParams;
 
-	public PinExchange(HttpExchange httpExchange, Map<String, String> pathParams) {
+	public PinExchange(HttpExchange httpExchange, Map<String, String> pathParams, Map<String, List<String>> queryParams,
+			Map<String, Object> postParams, Map<String, FileParam> fileParams) {
 		this.httpExchange = httpExchange;
 		this.pathParams = Collections.unmodifiableMap(pathParams);
+		this.queryParams = Collections.unmodifiableMap(queryParams);
+		this.postParams = Collections.unmodifiableMap(postParams);
+		this.fileParams = Collections.unmodifiableMap(fileParams);
 	}
+
+
 
 	public HttpExchange raw() {
 		return httpExchange;
 	}
 
 	public Map<String, List<String>> getQueryParams() {
-		if (queryParams == null) {
-			queryParams = Collections
-					.unmodifiableMap(PinUtils.splitQuery(this.httpExchange.getRequestURI().getQuery()));
-		}
 		return queryParams;
 	}
 
@@ -54,73 +45,16 @@ public class PinExchange {
 	 * 
 	 * @return
 	 */
-	public Map<String, FileItem> getFileParams() {
-		if (fileParams == null) {
-			if (!isMultipart()) {
-				// TODO: log error
-				fileParams = Collections.emptyMap();
-			} else {
-				DiskFileItemFactory d = new DiskFileItemFactory();
-				ServletFileUpload up = new ServletFileUpload(d);
-				try {
-					List<FileItem> fileItems = up.parseRequest(new PinHttpHandlerRequestContext(httpExchange));
-					fileParams = Collections.unmodifiableMap(fileItems.stream().filter(fi -> !fi.isFormField())
-							.collect(Collectors.toMap(fi -> fi.getFieldName(), Function.identity())));
-					postParams = Collections.unmodifiableMap(fileItems.stream().filter(fi -> fi.isFormField())
-							.collect(Collectors.toMap(fi -> fi.getFieldName(), fi -> utf8Value(fi))));
-				} catch (FileUploadException e) {
-					throw new PinFileUploadRuntimeException(e);
-				}
-			}
-		}
+	public Map<String, FileParam> getFileParams() {
 		return fileParams;
 	}
 
-	private String utf8Value(FileItem fi) {
-		try {
-			return fi.getString(PinUtils.UTF_8);
-		} catch (UnsupportedEncodingException e) {
-			//TODO: log errro
-			return fi.getString();
-		}
-	}
 
-	@SuppressWarnings("unchecked")
+
 	public Map<String, Object> getPostParams() {
-		if (postParams == null) {
-			if (isMultipart()) {
-				getFileParams(); // just because getFileParams shlould be
-									// executed first
-			} else {
-				try {
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					PinUtils.copy(httpExchange.getRequestBody(), out);
-					String contentType = getRequestContentTypeParsed();
-					if (contentType == null) {
-						// TODO: log error
-					} else if ("application/json".equals(contentType)) {
-						// that's angular enconding by default
-						String json = out.toString(PinUtils.UTF_8);
-						postParams = PinUtils.GSON.fromJson(json, HashMap.class);
-					}else if("application/x-www-form-urlencoded".equals(contentType)){
-						String postData = PinUtils.urlDecode(out.toString(PinUtils.UTF_8));
-						Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);
-						postParams = splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-					}
-
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
 		return postParams;
 	}
 
-	private boolean isMultipart() {
-		String contentType = getRequestContentTypeParsed();
-		return "multipart/form-data".equals(contentType) || "multipart/mixed".equals(contentType);
-	}
 
 	public Map<String, List<String>> getRequestHeaders() {
 		// only because headers class has restrictions
