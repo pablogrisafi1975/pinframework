@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.fileupload.RequestContext;
 
 import com.pinframework.PinMimeType;
-import com.pinframework.PinUtils;
 import com.sun.net.httpserver.HttpExchange;
 
 @SuppressWarnings("restriction")

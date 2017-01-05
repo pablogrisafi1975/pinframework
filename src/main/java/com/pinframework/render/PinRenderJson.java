@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Map;
 
+import com.pinframework.PinGson;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
@@ -14,20 +15,19 @@ import com.pinframework.PinUtils;
 public class PinRenderJson implements PinRender {
 	
 	public static final PinRenderJson INSTANCE = new PinRenderJson();
-
 	
 	public String render(Object model) {
-		return PinUtils.GSON.toJson(model);
+		return PinGson.getInstance().toJson(model);
 	}
 
 	public void render(Object model, Appendable writter) {
-		PinUtils.GSON.toJson(model, writter);
+		PinGson.getInstance().toJson(model, writter);
 	}
 
 	@Override
 	public void render(Object obj, OutputStream outputStream) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-		PinUtils.GSON.toJson(obj, writer);
+		PinGson.getInstance().toJson(obj, writer);
 		writer.flush();
 		writer.close();
 	}

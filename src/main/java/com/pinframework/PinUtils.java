@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +15,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import com.pinframework.exception.PinIORuntimeException;
 import com.pinframework.exception.PinUnsupportedEncodingRuntimeException;
 
@@ -43,17 +34,6 @@ public class PinUtils {
 			// just to clean things
 		}
 	};
-
-	/**
-	 * JSON that serializes LocalDateTime as yyyy-MM-ddTHH:mm:ssZ
-	 */
-	public static final Gson GSON = new GsonBuilder()
-			.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
-				@Override
-				public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-					return new JsonPrimitive(src.format(DateTimeFormatter.ISO_DATE_TIME));
-				}
-			}).create();
 
 	private PinUtils() {
 		// shup up sonar!
