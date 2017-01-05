@@ -5,6 +5,7 @@ import java.io.InputStream;
 import com.pinframework.response.PinResponseNotFoundJson;
 import com.pinframework.response.PinResponseNotFoundText;
 import com.pinframework.response.PinResponseOkDownload;
+import com.pinframework.response.PinResponseOkFile;
 import com.pinframework.response.PinResponseOkJson;
 import com.pinframework.response.PinResponseOkText;
 
@@ -30,5 +31,9 @@ public final class PinResponses {
 
 	public static final PinResponse notFoundJson(Object obj) {
 		return PinResponseNotFoundJson.of(obj);
+	}
+
+	public static PinResponse okFile(InputStream inputStream, String filename) {
+		return PinResponseOkFile.of(inputStream, filename);
 	}
 }

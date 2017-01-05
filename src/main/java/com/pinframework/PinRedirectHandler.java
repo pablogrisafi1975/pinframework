@@ -1,6 +1,7 @@
 package com.pinframework;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ public class PinRedirectHandler implements HttpHandler {
 		String verb = httpExchange.getRequestMethod();
 		String contentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
 
+		/* first try services */
 		for (Map.Entry<PinRequestMatcher, PinHandler> entry : routeMap.entrySet()) {
 			PinRequestMatcher requestMatcher = entry.getKey();
 			if (requestMatcher.matches(verb, route, contentType)) {
@@ -53,7 +55,26 @@ public class PinRedirectHandler implements HttpHandler {
 				return;
 			}
 		}
-
+		/* then external files */
+		
+		
+		/* then internal files */
+		String filenameAux = httpExchange.getRequestURI().getPath().replaceFirst("\\Q" + httpExchange.getHttpContext().getPath() + "\\E", "");
+		String fileName = filenameAux == null || filenameAux.length() == 0 ? "index.html" : filenameAux;
+		
+		InputStream inputStream = PinServer.class.getClassLoader().getResourceAsStream("static/" + fileName);
+		if(inputStream != null){
+			PinHandler internalFileHandler = new PinHandler() {
+				@Override
+				public PinResponse handle(PinExchange pinExchange) throws Exception {
+					return PinResponses.okFile(inputStream, fileName);
+				}
+			};
+			process(route, httpExchange, notFoundRequestMatcher, internalFileHandler);
+			return;
+		}
+		
+		/* then not found */
 		process(route, httpExchange, notFoundRequestMatcher, notFoundHandler);
 	}
 

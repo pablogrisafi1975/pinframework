@@ -46,9 +46,9 @@ public class PinServer {
 				resourceFolder(ex, "META-INF/resources/webjars", null);
 			}));
 		}
-		httpServer.createContext(appContext + "static/", (ex -> {
-			resourceFolder(ex, "static/", externalFolderCanonical);
-		}));
+//		httpServer.createContext(appContext, (ex -> {
+//			resourceFolder(ex, "static/", externalFolderCanonical);
+//		}));
 	}
 	
 	public PinServer on(PinRequestMatcher requestMatcher, PinHandler handler){
