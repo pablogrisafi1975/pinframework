@@ -51,19 +51,22 @@ public class PinServer {
 		}));
 	}
 	
-	public PinServer on(PinRequestMatcher requestPredicate, PinHandler handler){
-		redirectHandler.on(requestPredicate, handler);
+	public PinServer on(PinRequestMatcher requestMatcher, PinHandler handler){
+		LOG.info("{}", requestMatcher);
+		redirectHandler.on(requestMatcher, handler);
 		return this;
 	}
 	public PinServer on(String verb, String route, PinHandler handler){
-		PinRouteRequestMatcher routeMatcher = new PinRouteRequestMatcher(verb.toUpperCase(Locale.ENGLISH), route, appContext);
-		redirectHandler.on(routeMatcher, handler);
-		return this;
+		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher(verb.toUpperCase(Locale.ENGLISH), route, appContext);
+		return on(routeRequestMatcher, handler);
 	}
 	public PinServer onGet(String route, PinHandler handler){
-		PinRouteRequestMatcher routeMatcher = new PinRouteRequestMatcher("GET", route, appContext);
-		redirectHandler.on(routeMatcher, handler);
-		return this;
+		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher("GET", route, appContext);
+		return on(routeRequestMatcher, handler);
+	}
+	public PinServer onPost(String route, PinHandler handler){
+		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher("POST", route, appContext);
+		return on(routeRequestMatcher, handler);
 	}
 	
 

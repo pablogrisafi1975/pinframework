@@ -16,6 +16,8 @@ import com.pinframework.PinRequestMatcher;
 public class PinRouteRequestMatcher implements PinRequestMatcher {
 
 	private final String method;
+	private final String appContext;
+	private final String route;
 	private final Pattern routePattern;
 	private final Pattern capturePattern;
 	private final List<String> contentTypeList;
@@ -23,6 +25,8 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
 
 	public PinRouteRequestMatcher(String method, String route, String appContext, String... contentType) {
 		this.method = method;
+		this.route = route;
+		this.appContext = appContext;
 		// TODO: validar que los nombres sole tengan AZaz09 y empiecen con
 		// letras, ver
 		// http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#groupname
@@ -59,6 +63,12 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
 			}
 		}
 		return map;
+	}
+	
+	@Override
+	public String toString() {
+		String contentType = this.contentTypeList.isEmpty() ? "Any content type" : String.join(", ", contentTypeList);
+		return "[" + this.method + "]" + this.appContext + this.route + " (" + contentType  + ")";
 	}
 
 }
