@@ -16,10 +16,10 @@ import com.google.gson.Gson;
 
 public class PinParamsParser {
 
-	private Gson gson;
+	private Gson gsonParser;
 
-	public PinParamsParser(Gson gson) {
-		this.gson = gson;
+	public PinParamsParser(Gson gsonParser) {
+		this.gsonParser = gsonParser;
 	}
 
 	public Map<String, List<String>> queryParams(String decodedQuery) {
@@ -51,7 +51,7 @@ public class PinParamsParser {
 			// TODO: log error
 		} else if (fullContentType.startsWith("application/json")) {
 			// that's angular encoding by default
-			return gson.fromJson(new InputStreamReader(requestBody, StandardCharsets.UTF_8), HashMap.class);
+			return gsonParser.fromJson(new InputStreamReader(requestBody, StandardCharsets.UTF_8), HashMap.class);
 		} else if (fullContentType.startsWith("application/x-www-form-urlencoded")) {
 			String postData = PinUtils.urlDecode(PinUtils.asString(requestBody));
 			Map<String, List<String>> splitQuery = queryParams(postData);

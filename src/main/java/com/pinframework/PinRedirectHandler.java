@@ -12,6 +12,7 @@ import com.pinframework.upload.FileParam;
 import com.pinframework.upload.MultipartParams;
 import com.pinframework.upload.PinHttpHandlerRequestContext;
 import com.pinframework.upload.PinMutipartParamsParser;
+import com.pinframework.upload.PinMutipartParamsParserImpl;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -28,15 +29,12 @@ public class PinRedirectHandler implements HttpHandler {
 
 	private final PinMutipartParamsParser multipartParamsParser;
 
-	private final Gson gson;
-
 	private final boolean uploadSupportEnabled;
 
-	public PinRedirectHandler(Gson gson, boolean uploadSupportEnabled) {
-		this.gson = gson;
+	public PinRedirectHandler(Gson gsonParser, boolean uploadSupportEnabled) {
 		this.uploadSupportEnabled = uploadSupportEnabled;
-		this.paramsParser = new PinParamsParser(gson);
-		this.multipartParamsParser = uploadSupportEnabled ? new PinMutipartParamsParser() : null;
+		this.paramsParser = new PinParamsParser(gsonParser);
+		this.multipartParamsParser = uploadSupportEnabled ? PinMutipartParamsParser.createImpl() : null;
 	}
 
 	public void on(PinRequestMatcher requestPredicate, PinHandler handler) {
@@ -64,7 +62,7 @@ public class PinRedirectHandler implements HttpHandler {
 	private void process(String route, HttpExchange httpExchange, PinRequestMatcher requestMatcher,
 			PinHandler pinHandler) {
 		Map<String, String> pathParams = requestMatcher.extractPathParams(route);
-		
+
 		Map<String, List<String>> queryParams = paramsParser.queryParams(httpExchange.getRequestURI().getQuery());
 
 		String fullContentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
@@ -73,8 +71,7 @@ public class PinRedirectHandler implements HttpHandler {
 		Map<String, FileParam> fileParams = Collections.emptyMap();
 		if (paramsParser.isMultipart(fullContentType)) {
 			if (uploadSupportEnabled) {
-				MultipartParams multipartParams = multipartParamsParser
-						.parse(new PinHttpHandlerRequestContext(httpExchange));
+				MultipartParams multipartParams = multipartParamsParser.parse(httpExchange);
 				postParams = multipartParams.getPostParams();
 				fileParams = multipartParams.getFileParams();
 			} else {

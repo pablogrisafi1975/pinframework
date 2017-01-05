@@ -1,5 +1,6 @@
 package com.pinframework;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +9,7 @@ import com.pinframework.response.PinResponseOkText;
 public class Main {
 	public static void main(String[] args) {
 
-		PinServer pinServer = new PinServerBuilder().appContext("app").port(3030).build();
+		PinServer pinServer = new PinServerBuilder().appContext("app").port(3030).externalFolder("C:/git/MiWeb").build();
 		pinServer.on(new PinRequestMatcher() {
 			@Override
 			public boolean matches(String verb, String route, String contentType) {
@@ -17,7 +18,7 @@ public class Main {
 
 			@Override
 			public Map<String, String> extractPathParams(String route) {
-				return null;
+				return Collections.emptyMap();
 			}
 		}, pinExchange -> PinResponses.okText("hello-ok"));
 

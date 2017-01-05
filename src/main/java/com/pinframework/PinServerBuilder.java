@@ -32,7 +32,7 @@ public class PinServerBuilder {
 	private String externalFolder = null;
 	private Executor executor = Executors.newFixedThreadPool(10);
 	private boolean httpsSupportEnabled = false;
-	private Gson gson = null;
+	private Gson gsonParser = null;
 	// TODO: incluir un authenticator
 
 	/**
@@ -135,7 +135,7 @@ public class PinServerBuilder {
 	 * @param maxBacklog
 	 * @return this instance so you can keep building
 	 */
-	public PinServerBuilder setMaxBacklog(int maxBacklog) {
+	public PinServerBuilder maxBacklog(int maxBacklog) {
 		this.maxBacklog = maxBacklog;
 		return this;
 	}
@@ -147,24 +147,24 @@ public class PinServerBuilder {
 	 * @param executor
 	 * @return this instance so you can keep building
 	 */
-	public PinServerBuilder setExecutor(Executor executor) {
+	public PinServerBuilder executor(Executor executor) {
 		this.executor = executor;
 		return this;
 	}
 
 	/**
-	 * A Gson instance used to parse and render json objects.<br>
+	 * A Gson instance used to parse json objects.<br>
 	 * Default a Gson instance with support for
 	 * <ol>
 	 * <li>java.time.LocalDateTime as yyyyMMddTHH:mm:ss</li>
 	 * <li>java.time.ZonedDateTime as yyyyMMddTHH:mm:ss+OFF</li>
 	 * <ol>
 	 * 
-	 * @param gson
+	 * @param gsonParser
 	 * @return this instance so you can keep building
 	 */
-	public PinServerBuilder setGson(Gson gson) {
-		this.gson = gson;
+	public PinServerBuilder gsonParser(Gson gsonParser) {
+		this.gsonParser = gsonParser;
 		return this;
 	}
 
@@ -226,8 +226,8 @@ public class PinServerBuilder {
 			}
 		}
 
-		if (gson == null) {
-			gson = PinGson.getInstance();
+		if (gsonParser == null) {
+			gsonParser = PinGson.getInstance();
 		}
 
 		InetSocketAddress address = new InetSocketAddress(port);
@@ -241,7 +241,7 @@ public class PinServerBuilder {
 		httpServer.setExecutor(executor);
 
 		PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, uploadSupportEnabled,
-				externalFolderCanonical, gson);
+				externalFolderCanonical, gsonParser);
 		return pinServer;
 	}
 
