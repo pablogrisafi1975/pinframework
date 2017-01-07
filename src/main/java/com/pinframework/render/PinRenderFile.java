@@ -13,9 +13,11 @@ import com.pinframework.PinUtils;
 public class PinRenderFile implements PinRender {
 
 	private final String fileName;
+	private final boolean download;
 
-	public PinRenderFile(String fileName) {
+	public PinRenderFile(String fileName, boolean download) {
 		this.fileName = fileName;
+		this.download = download;
 	}
 
 	@Override
@@ -27,9 +29,14 @@ public class PinRenderFile implements PinRender {
 
 	@Override
 	public void changeHeaders(Map<String, List<String>> responseHeaders) {
-		String mimeType = PinMimeType.fromFileName(fileName);
-		PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, mimeType);
-
+		if (download) {
+			PinUtils.put(responseHeaders, "Content-Disposition",
+					"attachment; filename=\"" + PinUtils.urlEncode(fileName) + "\";");
+			PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, "application/force-download");
+		} else {
+			String mimeType = PinMimeType.fromFileName(fileName);
+			PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, mimeType);
+		}
 	}
 
 }

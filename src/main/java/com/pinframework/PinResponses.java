@@ -4,7 +4,6 @@ import java.io.InputStream;
 
 import com.pinframework.response.PinResponseNotFoundJson;
 import com.pinframework.response.PinResponseNotFoundText;
-import com.pinframework.response.PinResponseOkDownload;
 import com.pinframework.response.PinResponseOkFile;
 import com.pinframework.response.PinResponseOkJson;
 import com.pinframework.response.PinResponseOkText;
@@ -19,10 +18,10 @@ public final class PinResponses {
 	}
 
 	public static final PinResponse okDownload(InputStream inputStream, String fileName) {
-		return PinResponseOkDownload.of(inputStream, fileName);
+		return PinResponseOkFile.of(inputStream, fileName, true);
 	}
 	public static final PinResponse okDownload(String text, String fileName) {
-		return PinResponseOkDownload.of(text, fileName);
+		return PinResponseOkFile.of(text, fileName, true);
 	}
 
 	public static final PinResponse notFoundText(String text) {
@@ -34,6 +33,6 @@ public final class PinResponses {
 	}
 
 	public static PinResponse okFile(InputStream inputStream, String filename) {
-		return PinResponseOkFile.of(inputStream, filename);
+		return PinResponseOkFile.of(inputStream, filename, false);
 	}
 }
