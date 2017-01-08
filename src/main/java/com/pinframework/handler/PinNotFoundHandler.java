@@ -1,7 +1,14 @@
-package com.pinframework;
+package com.pinframework.handler;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.pinframework.PinExchange;
+import com.pinframework.PinHandler;
+import com.pinframework.PinMimeType;
+import com.pinframework.PinResponse;
+import com.pinframework.PinResponses;
+import com.pinframework.PinUtils;
 
 public class PinNotFoundHandler implements PinHandler {
 

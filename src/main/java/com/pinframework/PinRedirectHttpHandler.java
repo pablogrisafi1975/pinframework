@@ -1,13 +1,18 @@
 package com.pinframework;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.pinframework.handler.PinExternalFileHandler;
+import com.pinframework.handler.PinInternalFileHandler;
+import com.pinframework.handler.PinNotFoundHandler;
+import com.pinframework.requestmatcher.PinExternalFileRequestMatcher;
+import com.pinframework.requestmatcher.PinInternalFileRequestMatcher;
 import com.pinframework.requestmatcher.PinNotFoundRequestMatcher;
 import com.pinframework.upload.FileParam;
 import com.pinframework.upload.MultipartParams;
@@ -16,13 +21,21 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 @SuppressWarnings("restriction")
-public class PinRedirectHandler implements HttpHandler {
+public class PinRedirectHttpHandler implements HttpHandler {
 
 	private final Map<PinRequestMatcher, PinHandler> routeMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
+	private final PinRequestMatcher notFoundRequestMatcher = new PinNotFoundRequestMatcher();
+
 	private final PinHandler notFoundHandler = new PinNotFoundHandler();
 
-	private final PinRequestMatcher notFoundRequestMatcher = new PinNotFoundRequestMatcher();
+	private final PinRequestMatcher externalFileRequestMatcher; 
+
+	private final PinHandler externalFileHandler = new PinExternalFileHandler(); 
+
+	private final PinRequestMatcher internalFileRequestMatcher; 
+	
+	private final PinHandler internalFileHandler = new PinInternalFileHandler(); 
 
 	private final PinParamsParser paramsParser;
 
@@ -30,10 +43,13 @@ public class PinRedirectHandler implements HttpHandler {
 
 	private final boolean uploadSupportEnabled;
 
-	public PinRedirectHandler(Gson gsonParser, boolean uploadSupportEnabled) {
+
+	public PinRedirectHttpHandler(String appContext, File externalFolder, Gson gsonParser, boolean uploadSupportEnabled) {
 		this.uploadSupportEnabled = uploadSupportEnabled;
 		this.paramsParser = new PinParamsParser(gsonParser);
 		this.multipartParamsParser = uploadSupportEnabled ? PinMutipartParamsParser.createImpl() : null;
+		this.internalFileRequestMatcher = new PinInternalFileRequestMatcher(appContext);
+		this.externalFileRequestMatcher = new PinExternalFileRequestMatcher(appContext, externalFolder);
 	}
 
 	public void on(PinRequestMatcher requestPredicate, PinHandler handler) {
@@ -43,34 +59,27 @@ public class PinRedirectHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		String route = httpExchange.getRequestURI().getPath();
-		String verb = httpExchange.getRequestMethod();
+		String method = httpExchange.getRequestMethod();
 		String contentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
 
 		/* first try services */
 		for (Map.Entry<PinRequestMatcher, PinHandler> entry : routeMap.entrySet()) {
 			PinRequestMatcher requestMatcher = entry.getKey();
-			if (requestMatcher.matches(verb, route, contentType)) {
+			if (requestMatcher.matches(method, route, contentType)) {
 				PinHandler pinHandler = entry.getValue();
 				process(route, httpExchange, requestMatcher, pinHandler);
 				return;
 			}
 		}
 		/* then external files */
-		
+		if(externalFileRequestMatcher.matches(method, route, contentType)){
+			process(route, httpExchange, externalFileRequestMatcher, externalFileHandler);
+			return;
+		}		
 		
 		/* then internal files */
-		String filenameAux = httpExchange.getRequestURI().getPath().replaceFirst("\\Q" + httpExchange.getHttpContext().getPath() + "\\E", "");
-		String fileName = filenameAux == null || filenameAux.length() == 0 ? "index.html" : filenameAux;
-		
-		InputStream inputStream = PinServer.class.getClassLoader().getResourceAsStream("static/" + fileName);
-		if(inputStream != null){
-			PinHandler internalFileHandler = new PinHandler() {
-				@Override
-				public PinResponse handle(PinExchange pinExchange) throws Exception {
-					return PinResponses.okFile(inputStream, fileName);
-				}
-			};
-			process(route, httpExchange, notFoundRequestMatcher, internalFileHandler);
+		if(internalFileRequestMatcher.matches(method, route, contentType)){
+			process(route, httpExchange, internalFileRequestMatcher, internalFileHandler);
 			return;
 		}
 		

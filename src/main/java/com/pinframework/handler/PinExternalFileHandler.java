@@ -1,0 +1,22 @@
+package com.pinframework.handler;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+import com.pinframework.PinExchange;
+import com.pinframework.PinHandler;
+import com.pinframework.PinResponse;
+import com.pinframework.PinResponses;
+import com.pinframework.requestmatcher.PinExternalFileRequestMatcher;
+
+public class PinExternalFileHandler implements PinHandler {
+
+	@Override
+	public PinResponse handle(PinExchange pinExchange) throws Exception {
+		String fileName = pinExchange.getPathParams().get(PinExternalFileRequestMatcher.FILE_NAME);
+		String externalFileName = pinExchange.getPathParams().get(PinExternalFileRequestMatcher.EXTERNAL_FILE_NAME);
+		InputStream inputStream = new FileInputStream(externalFileName);
+		return PinResponses.okFile(inputStream, fileName);
+	}
+
+}

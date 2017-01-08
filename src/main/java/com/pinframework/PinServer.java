@@ -31,7 +31,7 @@ public class PinServer {
 	private final int port;
 	private final boolean restrictedCharset;
 
-	private PinRedirectHandler redirectHandler;
+	private PinRedirectHttpHandler redirectHttpHandler;
 
 	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled, 
 			boolean uploadSupportEnabled, File externalFolderCanonical, Gson gsonParser) {
@@ -39,25 +39,22 @@ public class PinServer {
 		this.restrictedCharset = restrictedCharset;
 		this.appContext = appContext;
 		this.port = httpServer.getAddress().getPort();
-		this.redirectHandler = new PinRedirectHandler(gsonParser, uploadSupportEnabled);
-		httpServer.createContext(appContext, redirectHandler);
+		this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical, gsonParser, uploadSupportEnabled);
+		httpServer.createContext(appContext, redirectHttpHandler);
 		if (webjarsSupportEnabled) {
 			httpServer.createContext(this.appContext + "webjars", (ex -> {
 				resourceFolder(ex, "META-INF/resources/webjars", null);
 			}));
 		}
-//		httpServer.createContext(appContext, (ex -> {
-//			resourceFolder(ex, "static/", externalFolderCanonical);
-//		}));
 	}
 	
 	public PinServer on(PinRequestMatcher requestMatcher, PinHandler handler){
 		LOG.info("{}", requestMatcher);
-		redirectHandler.on(requestMatcher, handler);
+		redirectHttpHandler.on(requestMatcher, handler);
 		return this;
 	}
-	public PinServer on(String verb, String route, PinHandler handler){
-		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher(verb.toUpperCase(Locale.ENGLISH), route, appContext);
+	public PinServer on(String method, String route, PinHandler handler){
+		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher(method.toUpperCase(Locale.ENGLISH), route, appContext);
 		return on(routeRequestMatcher, handler);
 	}
 	public PinServer onGet(String route, PinHandler handler){
