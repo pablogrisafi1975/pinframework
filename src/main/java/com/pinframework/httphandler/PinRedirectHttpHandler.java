@@ -1,4 +1,4 @@
-package com.pinframework;
+package com.pinframework.httphandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.pinframework.PinExchange;
+import com.pinframework.PinHandler;
+import com.pinframework.PinMimeType;
+import com.pinframework.PinParamsParser;
+import com.pinframework.PinRender;
+import com.pinframework.PinRequestMatcher;
+import com.pinframework.PinResponse;
 import com.pinframework.handler.PinExternalFileHandler;
 import com.pinframework.handler.PinInternalFileHandler;
 import com.pinframework.handler.PinNotFoundHandler;

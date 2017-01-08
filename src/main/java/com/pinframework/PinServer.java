@@ -1,19 +1,15 @@
 package com.pinframework;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.pinframework.httphandler.PinRedirectHttpHandler;
+import com.pinframework.httphandler.PinWebjarsHttpHandler;
 import com.pinframework.requestmatcher.PinRouteRequestMatcher;
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import sun.net.httpserver.HttpsServerImpl;
@@ -42,9 +38,7 @@ public class PinServer {
 		this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical, gsonParser, uploadSupportEnabled);
 		httpServer.createContext(appContext, redirectHttpHandler);
 		if (webjarsSupportEnabled) {
-			httpServer.createContext(this.appContext + "webjars", (ex -> {
-				resourceFolder(ex, "META-INF/resources/webjars", null);
-			}));
+			httpServer.createContext(this.appContext + "webjars", new PinWebjarsHttpHandler());
 		}
 	}
 	
@@ -67,56 +61,8 @@ public class PinServer {
 	}
 	
 
-	private void resourceFolder(HttpExchange ex, String resourceFolder, File externalFolder) throws IOException {
-		if (!"GET".equals(ex.getRequestMethod())) {
-			LOG.error("Error trying to access '{}', wrong method '{}'", ex.getRequestURI().getPath(),
-					ex.getRequestMethod());
-			ex.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
-			ex.close();
-			return;
-		}
-		String filename = ex.getRequestURI().getPath().replaceFirst("\\Q" + ex.getHttpContext().getPath() + "\\E", "");
-		if (filename == null || filename.trim().length() == 0) {
-			filename = "index.html";
-		}
 
-		try (InputStream is = findInputStream(resourceFolder, externalFolder, filename)) {
 
-			if (is == null) {
-				ex.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
-				ex.getResponseBody().write(("File '" + filename + "' not found in '" + resourceFolder + "'")
-						.getBytes(StandardCharsets.UTF_8));
-				LOG.error("File not found on request uri '{}'", ex.getRequestURI().getPath());
-			} else {
-				String mimeType = PinMimeType.fromFileName(filename);
-				ex.getResponseHeaders().add(PinMimeType.CONTENT_TYPE, mimeType);
-				ex.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
-
-				PinUtils.copy(is, ex.getResponseBody());
-			}
-		} catch (Exception e) {
-			LOG.error("Error on request uri '{}'", ex.getRequestURI().getPath(), e);
-			ex.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
-		}
-		ex.close();
-	}
-
-	private InputStream findInputStream(String resourceFolder, File externalFolder, String filename)
-			throws IOException {
-		if (externalFolder != null) {
-			File file = new File(externalFolder, filename).getCanonicalFile();
-			if (file.getAbsolutePath().indexOf(externalFolder.getAbsolutePath()) != 0) {
-				LOG.error("Error on filename '{}', directory traversal attack", filename);
-				return null;
-			}
-			if (file.exists()) {
-				return new FileInputStream(file);
-			}
-		}
-
-		return PinServer.class.getClassLoader().getResourceAsStream(resourceFolder + filename);
-
-	}
 
 	public PinServer start() {
 		String protocol = httpServer instanceof HttpsServerImpl ? "https" : " http";
