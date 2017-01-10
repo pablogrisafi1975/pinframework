@@ -28,6 +28,7 @@ public class PinServerBuilder {
 	private boolean restrictedCharset = true;
 	private String appContext = "";
 	private boolean webjarsSupportEnabled = true;
+	private boolean webjarsAutoMinimize = false;
 	private boolean uploadSupportEnabled = false;
 	private String externalFolder = null;
 	private Executor executor = Executors.newFixedThreadPool(10);
@@ -84,8 +85,8 @@ public class PinServerBuilder {
 	}
 
 	/**
-	 * Enable support for webjars. Webjars will be available in
-	 * localhost:9999/app-context/webjars/library/version/wahtever (Example,
+	 * Enable support for webjars. Webjars will be available in <br>
+	 * localhost:9999/app-context/webjars/library/version/whatever (Example, <br>
 	 * localhost:9999/app-context/webjars/angularjs/1.5.6/angular.min.js<br>
 	 * Default true
 	 * 
@@ -94,6 +95,26 @@ public class PinServerBuilder {
 	 */
 	public PinServerBuilder webjarsSupportEnabled(boolean webjarsSupportEnabled) {
 		this.webjarsSupportEnabled = webjarsSupportEnabled;
+		return this;
+	}
+
+	/**
+	 * Enable automatic minification for webjars. <br>
+	 * webjarsSupportEnabled should be true <br>
+	 * Webjars will be available in <br>
+	 * Pin will try to add .min in every file, so a request for<br>
+	 * angular.js<br>
+	 * becomes<br>
+	 * angular.min.js<br>
+	 * If angular.min.js is not present, will be back to angular.js<br>
+	 * Typically enabled in production environments, disabled in development environments<br>
+	 * Default false
+	 * 
+	 * @param webjarsAutoMinimize
+	 * @return this instance so you can keep building
+	 */
+	public PinServerBuilder webjarsAutoMinimize(boolean webjarsAutoMinimize) {
+		this.webjarsAutoMinimize = webjarsAutoMinimize;
 		return this;
 	}
 
@@ -199,6 +220,12 @@ public class PinServerBuilder {
 			throw new PinInitializationException(
 					"Invalid maxBacklog " + maxBacklog + ". Valid maxBacklog are 0 or positive");
 		}
+		if(webjarsSupportEnabled == false){
+			if(webjarsAutoMinimize){
+				throw new PinInitializationException(
+						"webjarsAutoMinimize is true but webjarsSupportEnabled is false. Enable webjar support first");
+			}
+		}
 
 		File externalFolderCanonical = null;
 		if (externalFolder != null) {
@@ -240,7 +267,7 @@ public class PinServerBuilder {
 		}
 		httpServer.setExecutor(executor);
 
-		PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, uploadSupportEnabled,
+		PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, webjarsAutoMinimize, uploadSupportEnabled,
 				externalFolderCanonical, gsonParser);
 		return pinServer;
 	}

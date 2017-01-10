@@ -29,8 +29,7 @@ public class PinServer {
 
 	private PinRedirectHttpHandler redirectHttpHandler;
 
-	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled, 
-			boolean uploadSupportEnabled, File externalFolderCanonical, Gson gsonParser) {
+	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled, boolean webjarsAutoMinimize, boolean uploadSupportEnabled, File externalFolderCanonical, Gson gsonParser) {
 		this.httpServer = httpServer;
 		this.restrictedCharset = restrictedCharset;
 		this.appContext = appContext;
@@ -38,7 +37,7 @@ public class PinServer {
 		this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical, gsonParser, uploadSupportEnabled);
 		httpServer.createContext(appContext, redirectHttpHandler);
 		if (webjarsSupportEnabled) {
-			httpServer.createContext(this.appContext + "webjars", new PinWebjarsHttpHandler());
+			httpServer.createContext(this.appContext + "webjars", new PinWebjarsHttpHandler(webjarsAutoMinimize));
 		}
 	}
 	

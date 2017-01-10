@@ -19,6 +19,11 @@ public class PinWebjarsHttpHandler implements HttpHandler {
 
 	private static final String WEBJARS_PATH = "META-INF/resources/webjars";
 	private static final Logger LOG = LoggerFactory.getLogger(PinWebjarsHttpHandler.class);
+	private final boolean autoMinimize;
+
+	public PinWebjarsHttpHandler(boolean autoMinimize) {
+		this.autoMinimize = autoMinimize;
+	}
 
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
@@ -30,17 +35,17 @@ public class PinWebjarsHttpHandler implements HttpHandler {
 			httpExchange.close();
 			return;
 		}
-		String filename = httpExchange.getRequestURI().getPath().replaceFirst("\\Q" + httpExchange.getHttpContext().getPath() + "\\E", "");
-		if (filename == null || filename.trim().length() == 0) {
-			filename = "index.html";
-		}
+		String filename = httpExchange.getRequestURI().getPath()
+				.replaceFirst("\\Q" + httpExchange.getHttpContext().getPath() + "\\E", "");
+
+		// filename /angularjs/1.4.0/angular.min.js
 
 		try (InputStream is = findInputStream(filename)) {
 
 			if (is == null) {
 				httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
-				httpExchange.getResponseBody().write(("File '" + filename + "' not found in webjars")
-						.getBytes(StandardCharsets.UTF_8));
+				httpExchange.getResponseBody()
+						.write(("File '" + filename + "' not found in webjars").getBytes(StandardCharsets.UTF_8));
 				LOG.error("File not found for request '{}'", httpExchange.getRequestURI().getPath());
 			} else {
 				String mimeType = PinMimeType.fromFileName(filename);
@@ -55,8 +60,22 @@ public class PinWebjarsHttpHandler implements HttpHandler {
 		httpExchange.close();
 	}
 
-	private InputStream findInputStream(String filename) throws IOException {
-		return PinServer.class.getClassLoader().getResourceAsStream(WEBJARS_PATH + filename);
+	private InputStream findInputStream(String fileName) throws IOException {
+		if (autoMinimize) {
+			int lastIndexOfDot = fileName.lastIndexOf('.');
+			String fileNameNoExt = fileName.substring(0, lastIndexOfDot);
+			if (!fileNameNoExt.endsWith(".min")) {//already minimized
+				String fileExt = fileName.substring(lastIndexOfDot);
+				String minimizedFileName = fileNameNoExt + ".min" + fileExt;
+				InputStream minimizedStream = PinServer.class.getClassLoader().getResourceAsStream(WEBJARS_PATH + minimizedFileName);
+				if (minimizedStream != null) {
+					return minimizedStream;
+				}
+			}else{
+				LOG.warn("Asking for an already minimized file '{}' while webjarsAutoMinimize is true", fileName);
+			}
+		}
+		return PinServer.class.getClassLoader().getResourceAsStream(WEBJARS_PATH + fileName);
 	}
 
 }
