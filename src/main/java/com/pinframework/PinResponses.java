@@ -7,7 +7,7 @@ import com.pinframework.response.PinResponseNotFoundText;
 import com.pinframework.response.PinResponseOkFile;
 import com.pinframework.response.PinResponseOkJson;
 import com.pinframework.response.PinResponseOkText;
-import com.pinframework.response.PinResponseOkUt;
+import com.pinframework.response.PinResponseOkJsut;
 
 public final class PinResponses {
 	public static final PinResponse okText(String text) {
@@ -18,8 +18,8 @@ public final class PinResponses {
 		return PinResponseOkJson.of(obj);
 	}
 
-	public static final PinResponse okUt(Object obj, String template) {
-		return PinResponseOkUt.of(obj, template);
+	public static final PinResponse okJsut(Object obj, String template) {
+		return PinResponseOkJsut.of(obj, template);
 	}
 
 	public static final PinResponse okDownload(InputStream inputStream, String fileName) {

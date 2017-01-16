@@ -15,31 +15,48 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import com.google.gson.Gson;
 import com.pinframework.PinGson;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinServer;
 import com.pinframework.PinUtils;
+import com.pinframework.exception.PinInitializationException;
 
-public class PinRenderUt implements PinRender {
-	
-	public static final ScriptEngine NASHORN = new ScriptEngineManager().getEngineByName("nashorn");
-	private final String templateContent;
+public class PinRenderJsut implements PinRender {
 
-	public PinRenderUt(String template) {
-		InputStream is = PinServer.class.getClassLoader().getResourceAsStream("dynamic/" + template);
-		this.templateContent = PinUtils.asString(is);
+	public static class Input {
+
+		public Input(Object object, String template) {
+			this.object = object;
+			this.template = template;
+		}
+
+		public final String template;
+		public final Object object;
+	}
+
+	public static final PinRender INSTANCE = new PinRenderJsut();
+	private final Invocable invocable;
+
+	public PinRenderJsut() {
+		ScriptEngine nashornEngine = new ScriptEngineManager().getEngineByName("nashorn");
+		try {
+			nashornEngine.eval(new InputStreamReader(PinServer.class.getClassLoader().getResourceAsStream("jsut.js"),
+					StandardCharsets.UTF_8));
+		} catch (ScriptException e) {
+			throw new PinInitializationException("Can not initialize jsut templates", e);
+		}
+		this.invocable = (Invocable) nashornEngine;
 	}
 
 	@Override
 	public void render(Object obj, OutputStream outputStream) throws IOException {
+		Input input = (Input) obj;
 		try {
-//			NASHORN.eval("function ff(a){return '-->' + a + '<--';}");
-//			NASHORN.eval("var ff = new Function('a', '{return \"-->\" + a + \"<--\";}')");
-			NASHORN.eval(new InputStreamReader(PinServer.class.getClassLoader().getResourceAsStream("jsut.js"), StandardCharsets.UTF_8));
-			Invocable invocable = (Invocable) NASHORN;
-			String evaluatedTemplate = (String)  invocable.invokeFunction("tmpl", templateContent, PinGson.getInstance().toJson(obj));
+			InputStream is = PinServer.class.getClassLoader().getResourceAsStream("dynamic/" + input.template);
+			String templateContent = PinUtils.asString(is);
+			String evaluatedTemplate = (String) invocable.invokeFunction("tmpl", templateContent,
+					PinGson.getInstance().toJson(input.object));
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false);
 			pw.write(evaluatedTemplate);
 			pw.flush();
