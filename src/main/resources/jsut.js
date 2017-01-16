@@ -19,4 +19,3 @@ tmpl = function tmpl(str, data){
 		
 	return fn( data );
   }
-print(tmpl.toString());

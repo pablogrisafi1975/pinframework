@@ -128,7 +128,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
 			}
 			pinTransformer.render(pinResponse.getObj(), httpExchange.getResponseBody());
 		} catch (Exception e) {
-			// TODO usar los exception handlers
+			// TODO usar los exception handlers, tener en cuenta o no las PinExceptions?
 			e.printStackTrace();
 		} finally {
 			if (!keepResponseOpen) {
