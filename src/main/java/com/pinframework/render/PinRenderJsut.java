@@ -15,8 +15,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinGson;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinServer;
 import com.pinframework.PinUtils;
@@ -76,7 +76,7 @@ public class PinRenderJsut implements PinRender {
 
 	@Override
 	public void changeHeaders(Map<String, List<String>> responseHeaders) {
-		PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, "text/html; charset=UTF-8");
+		PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_HTML_UTF8);
 	}
 
 }

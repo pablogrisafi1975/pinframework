@@ -29,52 +29,55 @@ public class PinServer {
 
 	private PinRedirectHttpHandler redirectHttpHandler;
 
-	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled, boolean webjarsAutoMinimize, boolean uploadSupportEnabled, File externalFolderCanonical, Gson gsonParser) {
+	PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
+			boolean webjarsAutoMinimize, boolean uploadSupportEnabled, File externalFolderCanonical, Gson gsonParser) {
 		this.httpServer = httpServer;
 		this.restrictedCharset = restrictedCharset;
 		this.appContext = appContext;
 		this.port = httpServer.getAddress().getPort();
-		this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical, gsonParser, uploadSupportEnabled);
+		this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical, gsonParser,
+				uploadSupportEnabled);
 		httpServer.createContext(appContext, redirectHttpHandler);
 		if (webjarsSupportEnabled) {
 			httpServer.createContext(this.appContext + "webjars", new PinWebjarsHttpHandler(webjarsAutoMinimize));
 		}
 	}
-	
-	public PinServer on(PinRequestMatcher requestMatcher, PinHandler handler){
+
+	public PinServer on(PinRequestMatcher requestMatcher, PinHandler handler) {
 		LOG.info("{}", requestMatcher);
 		redirectHttpHandler.on(requestMatcher, handler);
 		return this;
 	}
-	public PinServer on(String method, String route, PinHandler handler){
-		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher(method.toUpperCase(Locale.ENGLISH), route, appContext);
+
+	public PinServer on(String method, String route, PinHandler handler) {
+		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher(method.toUpperCase(Locale.ENGLISH),
+				route, appContext);
 		return on(routeRequestMatcher, handler);
 	}
-	public PinServer onGet(String route, PinHandler handler){
+
+	public PinServer onGet(String route, PinHandler handler) {
 		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher("GET", route, appContext);
 		return on(routeRequestMatcher, handler);
 	}
-	public PinServer onPost(String route, PinHandler handler){
+
+	public PinServer onPost(String route, PinHandler handler) {
 		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher("POST", route, appContext);
 		return on(routeRequestMatcher, handler);
 	}
-	
-
-
-
 
 	public PinServer start() {
 		String protocol = httpServer instanceof HttpsServerImpl ? "https" : " http";
-		LOG.debug("Starting as " + protocol + "://localhost:" + port + appContext);
+		LOG.debug("Starting as {}://localhost:{}{}", protocol, port, appContext);
 		httpServer.start();
-		LOG.info("Started as  " + protocol + "://localhost:" + port + appContext);
+		LOG.debug("Started as {}://localhost:{}{}", protocol, port, appContext);
 		return this;
 	}
 
 	public PinServer stop(int seconds) {
-		LOG.debug("Stopping https://localhost:" + port + appContext + " in about "  + seconds  + " seconds");
+		String protocol = httpServer instanceof HttpsServerImpl ? "https" : " http";
+		LOG.debug("Stopping as {}://localhost:{}{} in about {} seconds", protocol, port, appContext, seconds);
 		httpServer.stop(seconds);
-		LOG.info("Stopped https://localhost:" + port + appContext);
+		LOG.debug("Stopped as {}://localhost:{}{}", protocol, port, appContext);
 		return this;
 	}
 

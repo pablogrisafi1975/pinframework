@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinServer;
 import com.pinframework.PinUtils;
@@ -49,7 +50,7 @@ public class PinWebjarsHttpHandler implements HttpHandler {
 				LOG.error("File not found for request '{}'", httpExchange.getRequestURI().getPath());
 			} else {
 				String mimeType = PinMimeType.fromFileName(filename);
-				httpExchange.getResponseHeaders().add(PinMimeType.CONTENT_TYPE, mimeType);
+				httpExchange.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
 				httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
 				PinUtils.copy(is, httpExchange.getResponseBody());
 			}

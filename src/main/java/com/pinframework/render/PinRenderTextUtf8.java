@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import com.pinframework.PinMimeType;
+import com.pinframework.PinContentType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
 
@@ -28,7 +28,7 @@ public class PinRenderTextUtf8 implements PinRender {
 
 	@Override
 	public void changeHeaders(Map<String, List<String>> responseHeaders) {
-		PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, "text/plain; charset=utf-8");
+		PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
 	}
 
 }

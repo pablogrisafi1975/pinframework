@@ -7,8 +7,8 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Map;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinGson;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
 
@@ -34,7 +34,7 @@ public class PinRenderJson implements PinRender {
 	
 	@Override
 	public void changeHeaders(Map<String, List<String>> responseHeaders) {
-		PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, PinMimeType.APPLICATION_JSON_UTF8);
+		PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.APPLICATION_JSON_UTF8);
 	}
 
 }

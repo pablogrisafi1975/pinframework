@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.fileupload.RequestContext;
 
-import com.pinframework.PinMimeType;
+import com.pinframework.PinContentType;
 import com.sun.net.httpserver.HttpExchange;
 
 @SuppressWarnings("restriction")
@@ -30,7 +30,7 @@ public class PinHttpHandlerRequestContext implements RequestContext {
 
 	@Override
     public String getContentType() {
-          return http.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+          return http.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
 	}
 
     @Override

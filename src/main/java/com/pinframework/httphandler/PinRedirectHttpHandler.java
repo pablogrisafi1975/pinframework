@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
 import com.pinframework.PinHandler;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinParamsParser;
 import com.pinframework.PinRender;
 import com.pinframework.PinRequestMatcher;
@@ -67,7 +67,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
 	public void handle(HttpExchange httpExchange) throws IOException {
 		String route = httpExchange.getRequestURI().getPath();
 		String method = httpExchange.getRequestMethod();
-		String contentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+		String contentType = httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
 
 		/* first try services */
 		for (Map.Entry<PinRequestMatcher, PinHandler> entry : routeMap.entrySet()) {
@@ -100,7 +100,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
 
 		Map<String, List<String>> queryParams = paramsParser.queryParams(httpExchange.getRequestURI().getQuery());
 
-		String fullContentType = httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+		String fullContentType = httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
 
 		Map<String, Object> postParams = null;
 		Map<String, FileParam> fileParams = Collections.emptyMap();

@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
@@ -32,10 +33,10 @@ public class PinRenderFile implements PinRender {
 		if (download) {
 			PinUtils.put(responseHeaders, "Content-Disposition",
 					"attachment; filename=\"" + PinUtils.urlEncode(fileName) + "\";");
-			PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, "application/force-download");
+			PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.APPLICATION_FORCE_DOWNLOAD);
 		} else {
 			String mimeType = PinMimeType.fromFileName(fileName);
-			PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, mimeType);
+			PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, mimeType);
 		}
 	}
 
