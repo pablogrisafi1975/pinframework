@@ -66,27 +66,4 @@ public class PinExchange {
 		return httpExchange.getResponseHeaders();
 	}
 
-	/**
-	 * Full value of content type header, maybe something like
-	 * multipart/form-data; charset=utf-8; boundary="98279749896q696969696"
-	 * 
-	 * @return
-	 */
-	public String getRequestContentType() {
-		return httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
-	}
-
-	/**
-	 * Only the first part of the value of content type header<br>
-	 * , If header is multipart/form-data; charset=utf-8;
-	 * boundary="98279749896q696969696" getRequestContentTypeParsed() returns
-	 * multipart/form-data;
-	 * 
-	 * @return
-	 */
-	public String getRequestContentTypeParsed() {
-		String contentType = getRequestContentType();
-		return contentType == null ? null : contentType.split(";", -1)[0];
-	}
-
 }

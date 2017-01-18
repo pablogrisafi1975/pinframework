@@ -11,6 +11,10 @@ import com.pinframework.response.PinResponseSse;
 import com.pinframework.response.PinResponseOkJsut;
 
 public final class PinResponses {
+	
+	private PinResponses (){
+		//do nothing, shut up sonar
+	}
 	public static final PinResponse okText(String text) {
 		return PinResponseOkText.of(text);
 	}

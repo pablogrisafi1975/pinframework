@@ -18,13 +18,11 @@ import org.slf4j.LoggerFactory;
 import com.pinframework.exception.PinIORuntimeException;
 import com.pinframework.exception.PinUnsupportedEncodingRuntimeException;
 
-public class PinUtils {
+public final class PinUtils {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PinUtils.class);
 
 	private static final int COPY_BUFFER_SIZE = 8192;
-
-
 	/**
 	 * to fully read something an throw it away
 	 */

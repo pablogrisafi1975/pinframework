@@ -15,9 +15,9 @@ public class PinNotFoundHandler implements PinHandler {
 	@SuppressWarnings("restriction")
 	@Override
 	public PinResponse handle(PinExchange pinExchange) throws Exception {
-		String contentType = PinUtils.getFirst(pinExchange.getRequestHeaders(), "contentType");
+		String contentType = PinUtils.getFirst(pinExchange.getRequestHeaders(), PinContentType.CONTENT_TYPE);
 		String requestURI = pinExchange.raw().getRequestURI().normalize().toString();
-		if(PinContentType.APPLICATION_JSON_UTF8.equals(contentType) || PinContentType.APPLICATION_JSON.equals(contentType)){
+		if(contentType != null && contentType.startsWith(PinContentType.APPLICATION_JSON)){
 			Map<String, String> map = new HashMap<>();
 			map.put("requestUri", requestURI);
 			return PinResponses.notFoundJson(map);

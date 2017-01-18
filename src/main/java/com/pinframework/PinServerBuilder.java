@@ -34,7 +34,7 @@ public class PinServerBuilder {
 	private Executor executor = Executors.newFixedThreadPool(10);
 	private boolean httpsSupportEnabled = false;
 	private Gson gsonParser = null;
-	// TODO: incluir un authenticator
+	// TODO: authenticator
 
 	/**
 	 * A valid port value is between 0 and 65535. A port number of zero will let

@@ -7,6 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
@@ -29,6 +32,9 @@ import com.sun.net.httpserver.HttpHandler;
 
 @SuppressWarnings("restriction")
 public class PinRedirectHttpHandler implements HttpHandler {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(PinRedirectHttpHandler.class);
+
 
 	private final Map<PinRequestMatcher, PinHandler> routeMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
@@ -110,7 +116,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
 				postParams = multipartParams.getPostParams();
 				fileParams = multipartParams.getFileParams();
 			} else {
-				// TODO: log.error()
+				LOG.error("Trying to upload but uploadSupportEnabled is false");
 			}
 		} else {
 			postParams = paramsParser.postParams(fullContentType, httpExchange.getRequestBody());
@@ -129,6 +135,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
 			pinTransformer.render(pinResponse.getObj(), httpExchange.getResponseBody());
 		} catch (Exception e) {
 			// TODO usar los exception handlers, tener en cuenta o no las PinExceptions?
+			//TODO: before, after, onexception, onsuccess
 			e.printStackTrace();
 		} finally {
 			if (!keepResponseOpen) {

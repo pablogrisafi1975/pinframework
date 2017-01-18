@@ -64,6 +64,8 @@ public class PinServer {
 		PinRouteRequestMatcher routeRequestMatcher = new PinRouteRequestMatcher("POST", route, appContext);
 		return on(routeRequestMatcher, handler);
 	}
+	
+	//TODO: before, onexception, onsuccess, after
 
 	public PinServer start() {
 		String protocol = httpServer instanceof HttpsServerImpl ? "https" : " http";

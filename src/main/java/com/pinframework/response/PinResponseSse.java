@@ -33,8 +33,7 @@ public class PinResponseSse extends PinResponse {
 			httpExchange.getResponseBody().flush();
 			PinUtils.fullyRead(httpExchange.getRequestBody());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PinIORuntimeException(e);
 		}
 		this.printWriter = new PrintWriter(
 				new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8), false);
@@ -74,7 +73,7 @@ public class PinResponseSse extends PinResponse {
 				return false;
 			}
 		}
-		// TODO: jeep alive, id
+		// TODO: keep alive, id on retry
 		String[] lines = data.split("\n", -1);
 		for (String line : lines) {
 			String next = "data: " + line + "\n";

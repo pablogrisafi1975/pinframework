@@ -3,12 +3,12 @@ package com.pinframework;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PinMimeType {
+public final class PinMimeType {
 
 	private static final Map<String, String> MAP = new HashMap<>();
 
 	private PinMimeType(){
-		
+		//nothing to do here
 	}
 
 	static {

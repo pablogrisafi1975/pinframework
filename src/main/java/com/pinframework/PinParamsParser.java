@@ -12,9 +12,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 
 public class PinParamsParser {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(PinParamsParser.class);
 
 	private Gson gsonParser;
 
@@ -42,22 +47,22 @@ public class PinParamsParser {
 		if (contentType == null) {
 			return false;
 		}
-		return contentType.startsWith("multipart");
+		return contentType.startsWith(PinContentType.MULTIPART);
 	}
 
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> postParams(String fullContentType, InputStream requestBody) {
 		if (fullContentType == null) {
-			// TODO: log error
-		} else if (fullContentType.startsWith("application/json")) {
+			LOG.error("No content type, parameters can not be parsed");
+		} else if (fullContentType.startsWith(PinContentType.APPLICATION_JSON)) {
 			// that's angular encoding by default
 			return gsonParser.fromJson(new InputStreamReader(requestBody, StandardCharsets.UTF_8), HashMap.class);
-		} else if (fullContentType.startsWith("application/x-www-form-urlencoded")) {
+		} else if (fullContentType.startsWith(PinContentType.APPLICATION_FORM_URLENCODED)) {
 			String postData = PinUtils.urlDecode(PinUtils.asString(requestBody));
 			Map<String, List<String>> splitQuery = queryParams(postData);
 			return splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 		}
-		// TODO: log error
+		LOG.error("Unknown content type, parameters can not be parsed");
 		return Collections.emptyMap();
 	}
 
