@@ -7,6 +7,7 @@ import com.pinframework.response.PinResponseNotFoundText;
 import com.pinframework.response.PinResponseOkFile;
 import com.pinframework.response.PinResponseOkJson;
 import com.pinframework.response.PinResponseOkText;
+import com.pinframework.response.PinResponseSse;
 import com.pinframework.response.PinResponseOkJsut;
 
 public final class PinResponses {
@@ -39,5 +40,9 @@ public final class PinResponses {
 
 	public static PinResponse okFile(InputStream inputStream, String filename) {
 		return PinResponseOkFile.of(inputStream, filename, false);
+	}
+
+	public static PinResponseSse okSse(PinExchange pex) {
+		return PinResponseSse.of(pex);
 	}
 }
