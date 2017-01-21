@@ -6,6 +6,10 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<name>PinFramework</name>
 	<description>Another minialistic web framework for java</description>
+	<!-- To run pmd : mvn pmd:pmd check target/site/pmd.html -->
+	<!-- To check lib dependencies: mvn versions:display-dependency-updates -->
+	<!-- To check maven dependencies: mvn versions:display-plugin-updates -->
+	<!-- To generate site: mvn clean verify site -->
 	<properties>
 		<!-- encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,12 +21,12 @@
 		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
 		<maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
 		<!-- general dependency versions -->
-		<gson.version>2.7</gson.version>
+		<gson.version>2.8.0</gson.version>
 		<servlet-api.version>3.1.0</servlet-api.version>
 		<commons-fileupload.version>1.3.2</commons-fileupload.version>
-		<slf4j-api.version>1.7.21</slf4j-api.version>
+		<slf4j-api.version>1.7.22</slf4j-api.version>
 		<!-- test libraries dependency versions -->
-		<testng.version>6.9.10</testng.version>
+		<testng.version>6.10</testng.version>
 	</properties>
 
 	<dependencies>
@@ -43,10 +47,17 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.sun.net.httpserver</groupId>
+			<artifactId>http</artifactId>
+			<version>20070405</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${servlet-api.version}</version>
 			<scope>provided</scope>
+			<classifier></classifier>
 		</dependency>
 
 		<dependency>
@@ -79,8 +90,90 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.8</version>
+				<executions>
+					<!-- Prepares the property pointing to the JaCoCo runtime agent which 
+						is passed as VM argument when Maven the Surefire plugin is executed. -->
+					<execution>
+						<id>pre-unit-test</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+						</configuration>
+					</execution>
+					<!-- Ensures that the code coverage report for unit tests is created 
+						after unit tests have been run. -->
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+						</configuration>
+						
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<excludes>javax.servlet:javax.servlet-api:*</excludes>
+					<allowSnapshots>false</allowSnapshots>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>${argLine} -Xmx2048m</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.7</version>
+				<configuration>
+					<linkXref>true</linkXref>
+					<sourceEncoding>utf-8</sourceEncoding>
+					<minimumTokens>100</minimumTokens>
+					<targetJdk>1.8</targetJdk>
+					<skipEmptyReport>false</skipEmptyReport>
+					<linkXRef>true</linkXRef>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<profiles>
 		<profile>

@@ -15,30 +15,30 @@ public final class PinResponses {
 	private PinResponses (){
 		//do nothing, shut up sonar
 	}
-	public static final PinResponse okText(String text) {
+	public static PinResponse okText(String text) {
 		return PinResponseOkText.of(text);
 	}
 
-	public static final PinResponse okJson(Object obj) {
+	public static PinResponse okJson(Object obj) {
 		return PinResponseOkJson.of(obj);
 	}
 
-	public static final PinResponse okJsut(Object obj, String template) {
+	public static PinResponse okJsut(Object obj, String template) {
 		return PinResponseOkJsut.of(obj, template);
 	}
 
-	public static final PinResponse okDownload(InputStream inputStream, String fileName) {
+	public static PinResponse okDownload(InputStream inputStream, String fileName) {
 		return PinResponseOkFile.of(inputStream, fileName, true);
 	}
-	public static final PinResponse okDownload(String text, String fileName) {
+	public static PinResponse okDownload(String text, String fileName) {
 		return PinResponseOkFile.of(text, fileName, true);
 	}
 
-	public static final PinResponse notFoundText(String text) {
+	public static PinResponse notFoundText(String text) {
 		return PinResponseNotFoundText.of(text);
 	}
 
-	public static final PinResponse notFoundJson(Object obj) {
+	public static PinResponse notFoundJson(Object obj) {
 		return PinResponseNotFoundJson.of(obj);
 	}
 
