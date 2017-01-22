@@ -9,7 +9,7 @@
 	<!-- To run pmd : mvn pmd:pmd check target/site/pmd.html -->
 	<!-- To check lib dependencies: mvn versions:display-dependency-updates -->
 	<!-- To check maven dependencies: mvn versions:display-plugin-updates -->
-	<!-- To generate site: mvn clean verify site -->
+	<!-- To generate site: mvn clean pmd:pmd verify site -->
 	<properties>
 		<!-- encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
