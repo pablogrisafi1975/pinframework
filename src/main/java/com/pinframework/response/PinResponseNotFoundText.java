@@ -7,12 +7,7 @@ import com.pinframework.render.PinRenderTextUtf8;
 
 public class PinResponseNotFoundText extends PinResponse {
 
-	private PinResponseNotFoundText(String text) {
+	public PinResponseNotFoundText(String text) {
 		super(HttpURLConnection.HTTP_NOT_FOUND, text, PinRenderTextUtf8.INSTANCE);
 	}
-
-	public static PinResponseNotFoundText of(String text) {
-		return new PinResponseNotFoundText(text);
-	}
-
 }

@@ -10,17 +10,12 @@ import com.pinframework.render.PinRenderFile;
 
 public class PinResponseOkFile extends PinResponse {
 
-	private PinResponseOkFile(InputStream inputStream, String fileName, boolean download) {
+	public PinResponseOkFile(InputStream inputStream, String fileName, boolean download) {
 		super(HttpURLConnection.HTTP_OK, inputStream, new PinRenderFile(fileName, download));
 	}
 
-	public static PinResponseOkFile of(InputStream inputStream, String fileName, boolean download) {
-		return new PinResponseOkFile(inputStream, fileName, download);
+	public PinResponseOkFile(String text, String fileName, boolean download) {
+		super(HttpURLConnection.HTTP_OK, new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)),
+				new PinRenderFile(fileName, download));
 	}
-	
-	public static PinResponseOkFile of(String text, String fileName, boolean download) {
-		return new PinResponseOkFile(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), fileName, download);
-	}
-	
-
 }

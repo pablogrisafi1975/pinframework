@@ -15,12 +15,11 @@ import com.pinframework.exception.PinIORuntimeException;
 import com.pinframework.render.PinRenderNull;
 import com.sun.net.httpserver.HttpExchange;
 
-@SuppressWarnings("restriction")
 public class PinResponseSse extends PinResponse {
 	private final PrintWriter printWriter;
 	private final PinExchange pinExchange;
 
-	private PinResponseSse(PinExchange pinExchange) {
+	public PinResponseSse(PinExchange pinExchange) {
 		super(HttpURLConnection.HTTP_OK, pinExchange, PinRenderNull.INSTANCE);
 		this.pinExchange = pinExchange;
 		HttpExchange httpExchange = pinExchange.raw();
@@ -37,10 +36,6 @@ public class PinResponseSse extends PinResponse {
 		}
 		this.printWriter = new PrintWriter(
 				new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8), false);
-	}
-
-	public static PinResponseSse of(PinExchange pinExchange) {
-		return new PinResponseSse(pinExchange);
 	}
 
 	/**

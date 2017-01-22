@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.pinframework.response.PinResponseOkText;
-
 public class Main {
 	public static void main(String[] args) {
 
@@ -22,9 +20,9 @@ public class Main {
 			}
 		}, pinExchange -> PinResponses.okText("hello-ok"));
 
-		pinServer.onGet("hello2", pinExchange -> PinResponseOkText.of("hello2-ok"));
+		pinServer.onGet("hello2", pinExchange -> PinResponses.okText("hello2-ok"));
 
-		pinServer.onGet("hello3/sub1", pinExchange -> PinResponseOkText.of("hello3-ok-sub1"));
+		pinServer.onGet("hello3/sub1", pinExchange -> PinResponses.okText("hello3-ok-sub1"));
 		pinServer.onGet("hello4/:param1",
 				pinExchange -> PinResponses.okText("hello4-ok-" + pinExchange.getPathParams().get("param1")));
 		pinServer.onGet("hello5/:param1/nada/:param2/nada", pinExchange -> PinResponses.okText("hello5-ok-"

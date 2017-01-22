@@ -7,12 +7,7 @@ import com.pinframework.render.PinRenderTextUtf8;
 
 public class PinResponseOkText extends PinResponse {
 
-	private PinResponseOkText(String text) {
+	public PinResponseOkText(String text) {
 		super(HttpURLConnection.HTTP_OK, text, PinRenderTextUtf8.INSTANCE);
 	}
-
-	public static PinResponseOkText of(String text) {
-		return new PinResponseOkText(text);
-	}
-
 }
