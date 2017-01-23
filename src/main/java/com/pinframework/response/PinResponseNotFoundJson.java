@@ -1,9 +1,9 @@
 package com.pinframework.response;
 
-import java.net.HttpURLConnection;
-
 import com.pinframework.PinResponse;
 import com.pinframework.render.PinRenderJson;
+
+import java.net.HttpURLConnection;
 
 public class PinResponseNotFoundJson extends PinResponse {
 
