@@ -16,7 +16,6 @@ import com.pinframework.exception.PinInitializationException;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 
-@SuppressWarnings("restriction")
 public class PinServerBuilder {
 
 	private static final Pattern APP_CONTEXT_INVALID_CHARS_PATTERN = Pattern.compile(".*([^a-z0-9\\-/]).*");

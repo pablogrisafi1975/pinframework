@@ -3,7 +3,6 @@ package com.pinframework.upload;
 import com.pinframework.exception.PinInitializationException;
 import com.sun.net.httpserver.HttpExchange;
 
-@SuppressWarnings("restriction")
 public interface PinMutipartParamsParser {
 
 	MultipartParams parse(HttpExchange httpExchange);

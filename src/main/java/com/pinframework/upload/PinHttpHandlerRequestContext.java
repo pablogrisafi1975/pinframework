@@ -9,7 +9,6 @@ import org.apache.commons.fileupload.RequestContext;
 import com.pinframework.PinContentType;
 import com.sun.net.httpserver.HttpExchange;
 
-@SuppressWarnings("restriction")
 public class PinHttpHandlerRequestContext implements RequestContext {
     private HttpExchange http;
 

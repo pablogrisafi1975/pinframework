@@ -14,7 +14,6 @@ import com.sun.net.httpserver.HttpServer;
 
 import sun.net.httpserver.HttpsServerImpl;
 
-@SuppressWarnings("restriction")
 public class PinServer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PinServer.class);

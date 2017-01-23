@@ -30,7 +30,6 @@ import com.pinframework.upload.PinMutipartParamsParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-@SuppressWarnings("restriction")
 public class PinRedirectHttpHandler implements HttpHandler {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(PinRedirectHttpHandler.class);

@@ -12,7 +12,6 @@ import com.pinframework.PinUtils;
 
 public class PinNotFoundHandler implements PinHandler {
 
-	@SuppressWarnings("restriction")
 	@Override
 	public PinResponse handle(PinExchange pinExchange) throws Exception {
 		String contentType = PinUtils.getFirst(pinExchange.getRequestHeaders(), PinContentType.CONTENT_TYPE);

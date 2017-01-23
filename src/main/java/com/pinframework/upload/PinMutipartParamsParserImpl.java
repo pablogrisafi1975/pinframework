@@ -20,7 +20,6 @@ import com.pinframework.exception.PinIORuntimeException;
 import com.pinframework.exception.PinUnsupportedEncodingRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
-@SuppressWarnings("restriction")
 public class PinMutipartParamsParserImpl implements PinMutipartParamsParser {
 
 	@Override

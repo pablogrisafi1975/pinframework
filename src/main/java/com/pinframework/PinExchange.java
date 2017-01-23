@@ -7,7 +7,6 @@ import java.util.Map;
 import com.pinframework.upload.FileParam;
 import com.sun.net.httpserver.HttpExchange;
 
-@SuppressWarnings("restriction")
 public class PinExchange {
 
 
