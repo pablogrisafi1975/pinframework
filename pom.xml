@@ -156,8 +156,7 @@
 				<artifactId>versions-maven-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
-					<excludes>javax.servlet:javax.servlet-api:*</excludes>
-					<allowSnapshots>false</allowSnapshots>
+					<rulesUri>file://${project.basedir}/versions-maven-plugin-rules.xml</rulesUri>
 				</configuration>
 			</plugin>
 		</plugins>
