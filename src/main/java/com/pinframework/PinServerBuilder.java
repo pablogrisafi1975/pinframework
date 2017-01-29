@@ -10,26 +10,35 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Fluent builder for PinServer. Error will be caught ASAP, if possible in the setter, if not on
+ * build method
+ */
 public class PinServerBuilder {
 
-  private static final Pattern APP_CONTEXT_INVALID_CHARS_PATTERN =
-      Pattern.compile(".*([^a-z0-9\\-/]).*");
+  private static final Pattern RESTRICTED_APP_CONTEXT_PATTERN =
+      Pattern.compile("/[a-z0-9\\-\\.]*/");
+
+  public static final int DEFAULT_PORT = 9999;
+  public static final boolean DEFAULT_RESTRICTED_CHARSET = false;
+  public static final boolean DEFAULT_WEBJARS_SUPPORT_ENABLED = true;
+  public static final boolean DEFAULT_WEBJARS_PREFER_MINIFIED = false;
+  public static final boolean DEFAULT_UPLOAD_SUPPORT_ENABLED = false;
 
   private static final Logger LOG = LoggerFactory.getLogger(PinServerBuilder.class);
 
-  private int port = 9999;
+  private int port = DEFAULT_PORT;
+  private boolean restrictedCharset = DEFAULT_RESTRICTED_CHARSET;
   private int maxBacklog = 0;
-  private boolean restrictedCharset = true;
   private String appContext = "";
-  private boolean webjarsSupportEnabled = true;
-  private boolean webjarsAutoMinimize = false;
-  private boolean uploadSupportEnabled = false;
+  private boolean webjarsSupportEnabled = DEFAULT_WEBJARS_SUPPORT_ENABLED;
+  private boolean webjarsPreferMinified = DEFAULT_WEBJARS_PREFER_MINIFIED;
+  private boolean uploadSupportEnabled = DEFAULT_UPLOAD_SUPPORT_ENABLED;
   private String externalFolder = null;
   private Executor executor = Executors.newFixedThreadPool(10);
   private boolean httpsSupportEnabled = false;
@@ -41,7 +50,7 @@ public class PinServerBuilder {
    * ephemeral port in a bind operation<br>
    * Default 9999
    * 
-   * @param port
+   * @param port The port, default 9999
    * @return this instance so you can keep building
    */
   public PinServerBuilder port(int port) {
@@ -54,12 +63,18 @@ public class PinServerBuilder {
   }
 
   /**
-   * If true Pin only allows a-to-z (lowercase), 0 to 9, - (minus) and . (dot) appContext and
-   * routes<br>
+   * If true Pin only allows
+   * <ol>
+   * <li>a to-z (lowercase)</li>
+   * <li>0 to 9</li>
+   * <li>- (minus)</li>
+   * <li>. (dot)</li>
+   * </ol>
+   * in appContext and routes<br>
    * If false, appContext and routes can have any chars<br>
-   * Default true
+   * Default false
    * 
-   * @param restrictedCharset
+   * @param restrictedCharset true to allow only a-z, 0 to 9, minus and dot, default false
    * @return this instance so you can keep building
    */
   public PinServerBuilder restrictedCharset(boolean restrictedCharset) {
@@ -68,16 +83,26 @@ public class PinServerBuilder {
   }
 
   /**
-   * A common root path for every out in the server<br>
+   * A common root path for everything exposed in this server<br>
    * So your application can expose itself in localhost:9999/app-context/index.html and every other
-   * route starts with /app-context<br/>
+   * route starts with /app-context/<br/>
    * Back in the day when servers were shared between applications it was more popular<br>
    * Default "", your application will be in localhost:9999/
    * 
-   * @param appContext
+   * @param appContext root path for everything exposed in this server. Do NOT start or end with /
    * @return this instance so you can keep building
    */
   public PinServerBuilder appContext(String appContext) {
+    if (appContext != null) {
+      if (appContext.startsWith("/")) {
+        throw new PinInitializationException(
+            "appContext should not start with /. Will be added automatically");
+      }
+      if (appContext.endsWith("/")) {
+        throw new PinInitializationException(
+            "appContext should not end with /. Will be added automatically");
+      }
+    }
     this.appContext = appContext;
     return this;
   }
@@ -86,10 +111,9 @@ public class PinServerBuilder {
    * Enable support for webjars. Webjars will be available in <br>
    * localhost:9999/app-context/webjars/library/version/whatever (Example, <br>
    * localhost:9999/app-context/webjars/angularjs/1.5.6/angular.min.js<br>
-   * Default true
    * 
-   * @param webjarsSupportEnabled
-   * @return this instance so you can keep building
+   * @param webjarsSupportEnabled enable support for webjars
+   * @return this instance so you can keep building, default true
    */
   public PinServerBuilder webjarsSupportEnabled(boolean webjarsSupportEnabled) {
     this.webjarsSupportEnabled = webjarsSupportEnabled;
@@ -106,21 +130,20 @@ public class PinServerBuilder {
    * angular.min.js<br>
    * If angular.min.js is not present, will be back to angular.js<br>
    * Typically enabled in production environments, disabled in development environments<br>
-   * Default false
    * 
-   * @param webjarsAutoMinimize
+   * @param webjarsPreferMinified use minified resource when available, default false
    * @return this instance so you can keep building
    */
-  public PinServerBuilder webjarsAutoMinimize(boolean webjarsAutoMinimize) {
-    this.webjarsAutoMinimize = webjarsAutoMinimize;
+  public PinServerBuilder webjarsPreferMinified(boolean webjarsPreferMinified) {
+    this.webjarsPreferMinified = webjarsPreferMinified;
     return this;
   }
 
   /**
    * Enable support for upload.<br>
-   * For this to work you need to have commons-fileupload in you classpath Default false
+   * For this to work you need to have commons-fileupload in you classpath
    * 
-   * @param uploadSupportEnabled
+   * @param uploadSupportEnabled true for support file upload, default false
    * @return this instance so you can keep building
    */
   public PinServerBuilder uploadSupportEnabled(boolean uploadSupportEnabled) {
@@ -134,7 +157,7 @@ public class PinServerBuilder {
    * External folder should be an existing readable directory<br>
    * Default null, no external folder is used
    * 
-   * @param externalFolder
+   * @param externalFolder full path for external folder, default null, no external folder
    * @return this instance so you can keep building
    */
 
@@ -148,10 +171,14 @@ public class PinServerBuilder {
    * connections exceeding this limit may be rejected by the TCP implementation.<br>
    * Default 0, no maximum
    * 
-   * @param maxBacklog
+   * @param maxBacklog Maximum number of queued incoming connections to allow
    * @return this instance so you can keep building
    */
   public PinServerBuilder maxBacklog(int maxBacklog) {
+    if (maxBacklog < 0) {
+      throw new PinInitializationException(
+          "Invalid maxBacklog " + maxBacklog + ". Valid maxBacklog are 0 or positive");
+    }
     this.maxBacklog = maxBacklog;
     return this;
   }
@@ -160,7 +187,7 @@ public class PinServerBuilder {
    * All HTTP requests are handled in tasks given to the executor.<br>
    * Default a FixedThreadPool with 10 threads
    * 
-   * @param executor
+   * @param executor an executor to handle every task
    * @return this instance so you can keep building
    */
   public PinServerBuilder executor(Executor executor) {
@@ -174,9 +201,9 @@ public class PinServerBuilder {
    * <ol>
    * <li>java.time.LocalDateTime as yyyyMMddTHH:mm:ss</li>
    * <li>java.time.ZonedDateTime as yyyyMMddTHH:mm:ss+OFF</li>
-   * <ol>
+   * </ol>
    * 
-   * @param gsonParser
+   * @param gsonParser A Gson instance used to parse json objects
    * @return this instance so you can keep building
    */
   public PinServerBuilder gsonParser(Gson gsonParser) {
@@ -185,10 +212,9 @@ public class PinServerBuilder {
   }
 
   /**
-   * Enable https support<br>
-   * Default false
+   * Enable https support. Default false
    * 
-   * @param httpsSupportEnabled
+   * @param httpsSupportEnabled support for https, default false
    * @return this instance so you can keep building
    */
   public PinServerBuilder httpsSupportEnabled(boolean httpsSupportEnabled) {
@@ -196,29 +222,29 @@ public class PinServerBuilder {
     return this;
   }
 
+  /**
+   * Builds a PinServer with the given configuration. Server is not started
+   * 
+   * @return The actual PinServer built
+   */
   public PinServer build() {
-    this.appContext = appContext == null || appContext.trim().length() == 0 ? "/"
-        : "/" + appContext.replaceAll("/", "") + "/";
+    this.appContext =
+        appContext == null || appContext.trim().length() == 0 ? "/" : "/" + appContext + "/";
 
-    if (restrictedCharset && appContext != null) {
-      Matcher matcher = APP_CONTEXT_INVALID_CHARS_PATTERN.matcher(appContext);
-      if (matcher.matches()) {
-        String invalid = matcher.group(1);
-        throw new PinInitializationException(
-            "Invalid chars '" + invalid + "' in appContext. Valid chars are a to z, 0 to 9 and -");
-      }
-    }
-    if (port < 0 || port > 65535) {
-      throw new PinInitializationException("Invalid port " + port + ". Valid port are 0 to 65535");
-    }
-    if (maxBacklog < 0) {
+
+    if (webjarsSupportEnabled == false && webjarsPreferMinified) {
       throw new PinInitializationException(
-          "Invalid maxBacklog " + maxBacklog + ". Valid maxBacklog are 0 or positive");
+          "webjarsPreferMinimized is true but webjarsSupportEnabled is false. "
+              + " Enable webjar support first");
     }
-    if (webjarsSupportEnabled == false) {
-      if (webjarsAutoMinimize) {
+
+
+    if (restrictedCharset) {
+
+      if (!RESTRICTED_APP_CONTEXT_PATTERN.matcher(appContext).matches()) {
         throw new PinInitializationException(
-            "webjarsAutoMinimize is true but webjarsSupportEnabled is false. Enable webjar support first");
+            "restrictedCharset is true, appContext must contain only small letters, numbers,"
+                + " -  (minus) and . (dot)");
       }
     }
 
@@ -258,14 +284,14 @@ public class PinServerBuilder {
     try {
       httpServer = httpsSupportEnabled ? HttpsServer.create(address, maxBacklog)
           : HttpServer.create(address, maxBacklog);
-    } catch (IOException e) {
-      throw new PinInitializationException("Can not create server", e);
+    } catch (IOException ex) {
+      throw new PinInitializationException("Can not create server", ex);
     }
     httpServer.setExecutor(executor);
 
     PinServer pinServer =
         new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled,
-            webjarsAutoMinimize, uploadSupportEnabled, externalFolderCanonical, gsonParser);
+            webjarsPreferMinified, uploadSupportEnabled, externalFolderCanonical, gsonParser);
     return pinServer;
   }
 

@@ -21,10 +21,10 @@ public class PinServer {
   /**
    * will be / or /something/ .
    */
-  private final String appContext;
-  private final HttpServer httpServer;
-  private final int port;
-  private final boolean restrictedCharset;
+  public final String appContext;
+  public final HttpServer httpServer;
+  public final int port;
+  public final boolean restrictedCharset;
 
   private PinRedirectHttpHandler redirectHttpHandler;
 
