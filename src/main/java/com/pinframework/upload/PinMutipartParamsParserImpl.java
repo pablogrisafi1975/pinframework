@@ -1,7 +1,7 @@
 package com.pinframework.upload;
 
 import com.pinframework.exception.PinFileUploadRuntimeException;
-import com.pinframework.exception.PinIORuntimeException;
+import com.pinframework.exception.PinIoRuntimeException;
 import com.pinframework.exception.PinUnsupportedEncodingRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -52,7 +52,7 @@ public class PinMutipartParamsParserImpl implements PinMutipartParamsParser {
     try {
       return new FileParam(fi.getName(), fi.getContentType(), fi.getSize(), fi.getInputStream());
     } catch (IOException ex) {
-      throw new PinIORuntimeException(ex);
+      throw new PinIoRuntimeException(ex);
     }
   }
 

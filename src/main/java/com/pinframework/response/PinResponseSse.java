@@ -5,7 +5,7 @@ import com.pinframework.PinExchange;
 import com.pinframework.PinGson;
 import com.pinframework.PinResponse;
 import com.pinframework.PinUtils;
-import com.pinframework.exception.PinIORuntimeException;
+import com.pinframework.exception.PinIoRuntimeException;
 import com.pinframework.render.PinRenderNull;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -38,7 +38,7 @@ public class PinResponseSse extends PinResponse {
       httpExchange.getResponseBody().flush();
       PinUtils.fullyRead(httpExchange.getRequestBody());
     } catch (IOException ex) {
-      throw new PinIORuntimeException(ex);
+      throw new PinIoRuntimeException(ex);
     }
     this.printWriter = new PrintWriter(
         new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8), false);
@@ -112,7 +112,7 @@ public class PinResponseSse extends PinResponse {
     try {
       pinExchange.raw().getResponseBody().close();
     } catch (IOException ex) {
-      throw new PinIORuntimeException(ex);
+      throw new PinIoRuntimeException(ex);
     }
   }
 

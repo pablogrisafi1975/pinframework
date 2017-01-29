@@ -1,6 +1,6 @@
 package com.pinframework;
 
-import com.pinframework.exception.PinIORuntimeException;
+import com.pinframework.exception.PinIoRuntimeException;
 import com.pinframework.exception.PinUnsupportedEncodingRuntimeException;
 
 import java.io.ByteArrayOutputStream;
@@ -42,14 +42,14 @@ public final class PinUtils {
   }
 
   public static void copy(InputStream in, OutputStream out) {
-    byte[] b = new byte[COPY_BUFFER_SIZE];
+    byte[] byteBuffer = new byte[COPY_BUFFER_SIZE];
     int len;
     try {
-      while ((len = in.read(b, 0, COPY_BUFFER_SIZE)) > 0) {
-        out.write(b, 0, len);
+      while ((len = in.read(byteBuffer, 0, COPY_BUFFER_SIZE)) > 0) {
+        out.write(byteBuffer, 0, len);
       }
-    } catch (IOException e) {
-      throw new PinIORuntimeException(e);
+    } catch (IOException ex) {
+      throw new PinIoRuntimeException(ex);
     }
   }
 
@@ -58,8 +58,8 @@ public final class PinUtils {
     PinUtils.copy(is, out);
     try {
       return out.toString(StandardCharsets.UTF_8.name());
-    } catch (UnsupportedEncodingException e) {
-      throw new PinUnsupportedEncodingRuntimeException(e);
+    } catch (UnsupportedEncodingException ex) {
+      throw new PinUnsupportedEncodingRuntimeException(ex);
     }
   }
 
@@ -87,9 +87,9 @@ public final class PinUtils {
   public static String urlEncode(String string) {
     try {
       return URLEncoder.encode(string, StandardCharsets.UTF_8.name());
-    } catch (UnsupportedEncodingException e) {
-      LOG.error("Can not encode '{}'", string, e);
-      throw new PinUnsupportedEncodingRuntimeException(e);
+    } catch (UnsupportedEncodingException ex) {
+      LOG.error("Can not encode '{}'", string, ex);
+      throw new PinUnsupportedEncodingRuntimeException(ex);
     }
   }
 
@@ -97,6 +97,7 @@ public final class PinUtils {
    * Decodes a {@code application/x-www-form-urlencoded} string using a specific encoding scheme.
    * UTF-8 encoding is used to determine what characters are represented by any consecutive
    * sequences of the form "<i>{@code %xy}</i>".
+   * 
    * <p>
    * <em><strong>Note:</strong> The
    * <a href= "http://www.w3.org/TR/html40/appendix/notes.html#non-ascii-chars"> World Wide Web

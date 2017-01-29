@@ -1,7 +1,7 @@
 package com.pinframework.requestmatcher;
 
 import com.pinframework.PinRequestMatcher;
-import com.pinframework.exception.PinIORuntimeException;
+import com.pinframework.exception.PinIoRuntimeException;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class PinExternalFileRequestMatcher implements PinRequestMatcher {
     try {
       file = new File(externalFolder, fileName).getCanonicalFile();
     } catch (IOException ex) {
-      throw new PinIORuntimeException(ex);
+      throw new PinIoRuntimeException(ex);
     }
     if (file.getAbsolutePath().indexOf(externalFolder.getAbsolutePath()) != 0) {
       LOG.error("Error trying to access '{}', directory traversal attack", route);
@@ -52,8 +52,9 @@ public class PinExternalFileRequestMatcher implements PinRequestMatcher {
   }
 
   private String parseFileName(String route) {
-    String filenameAux = route.substring(appContext.length());
-    return filenameAux == null || filenameAux.length() == 0 ? "index.html" : filenameAux;
+    String fileName = route.substring(appContext.length());
+    //substring never returns null
+    return fileName.length() == 0 ? "index.html" : fileName;
   }
 
   @Override
