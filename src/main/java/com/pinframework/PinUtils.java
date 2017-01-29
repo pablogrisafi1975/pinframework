@@ -130,6 +130,10 @@ public final class PinUtils {
     return null;
   }
 
+  public static InputStream getResourceAsStream(String resource) {
+    return PinServer.class.getClassLoader().getResourceAsStream(resource);
+  }
+
 
 
 }

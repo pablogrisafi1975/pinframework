@@ -70,7 +70,7 @@ public class PinWebjarsHttpHandler implements HttpHandler {
         String fileExt = fileName.substring(lastIndexOfDot);
         String minimizedFileName = fileNameNoExt + ".min" + fileExt;
         InputStream minimizedStream =
-            PinServer.class.getClassLoader().getResourceAsStream(WEBJARS_PATH + minimizedFileName);
+            PinUtils.getResourceAsStream(WEBJARS_PATH + minimizedFileName);
         if (minimizedStream != null) {
           return minimizedStream;
         }
@@ -79,7 +79,7 @@ public class PinWebjarsHttpHandler implements HttpHandler {
             fileName);
       }
     }
-    return PinServer.class.getClassLoader().getResourceAsStream(WEBJARS_PATH + fileName);
+    return PinUtils.getResourceAsStream(WEBJARS_PATH + fileName);
   }
 
 }

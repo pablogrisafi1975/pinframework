@@ -1,7 +1,7 @@
 package com.pinframework.requestmatcher;
 
 import com.pinframework.PinRequestMatcher;
-import com.pinframework.PinServer;
+import com.pinframework.PinUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +30,14 @@ public class PinInternalFileRequestMatcher implements PinRequestMatcher {
     }
     String fileName = parseFileName(route);
 
-    return PinServer.class.getClassLoader().getResourceAsStream("static/" + fileName) != null;
+    return PinUtils.getResourceAsStream("static/" + fileName) != null;
 
   }
 
   private String parseFileName(String route) {
-    String filenameAux = route.substring(appContext.length());
-    return filenameAux == null || filenameAux.length() == 0 ? "index.html" : filenameAux;
+    String fileName = route.substring(appContext.length());
+    // substring never returns null
+    return fileName.length() == 0 ? "index.html" : fileName;
   }
 
   @Override

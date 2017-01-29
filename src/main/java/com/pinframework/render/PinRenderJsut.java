@@ -3,7 +3,6 @@ package com.pinframework.render;
 import com.pinframework.PinContentType;
 import com.pinframework.PinGson;
 import com.pinframework.PinRender;
-import com.pinframework.PinServer;
 import com.pinframework.PinUtils;
 import com.pinframework.exception.PinFileRenderRuntimeException;
 import com.pinframework.exception.PinInitializationException;
@@ -42,10 +41,10 @@ public class PinRenderJsut implements PinRender {
   public PinRenderJsut() {
     ScriptEngine nashornEngine = new ScriptEngineManager().getEngineByName("nashorn");
     try {
-      nashornEngine.eval(new InputStreamReader(
-          PinServer.class.getClassLoader().getResourceAsStream("jsut.js"), StandardCharsets.UTF_8));
-    } catch (ScriptException e) {
-      throw new PinInitializationException("Can not initialize jsut templates", e);
+      nashornEngine.eval(
+          new InputStreamReader(PinUtils.getResourceAsStream("jsut.js"), StandardCharsets.UTF_8));
+    } catch (ScriptException ex) {
+      throw new PinInitializationException("Can not initialize jsut templates", ex);
     }
     this.invocable = (Invocable) nashornEngine;
   }
@@ -55,8 +54,7 @@ public class PinRenderJsut implements PinRender {
     Input input = (Input) obj;
     String jsonObject = PinGson.getInstance().toJson(input.object);
     try {
-      InputStream is =
-          PinServer.class.getClassLoader().getResourceAsStream("dynamic/" + input.template);
+      InputStream is = PinUtils.getResourceAsStream("dynamic/" + input.template);
       if (is == null) {
         throw new PinFileRenderRuntimeException("Error load template '" + input.template + "'"
             + ". Templates should be in folder in src/main/resources/dynamic");
@@ -70,11 +68,11 @@ public class PinRenderJsut implements PinRender {
       pw.flush();
       pw.close();
 
-    } catch (ScriptException | NoSuchMethodException e) {
+    } catch (ScriptException | NoSuchMethodException ex) {
       throw new PinFileRenderRuntimeException(
           "Error rendering template '" + input.template + "' with object :" + jsonObject
               + ". Remember to use <%= name %> to show the content of name (the = is vital!)",
-          e);
+          ex);
     }
   }
 
