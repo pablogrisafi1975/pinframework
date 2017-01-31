@@ -106,7 +106,7 @@ public class PinRedirectHttpHandler implements HttpHandler {
     Map<String, String> pathParams = requestMatcher.extractPathParams(route);
 
     Map<String, List<String>> queryParams =
-        paramsParser.queryParams(httpExchange.getRequestURI().getQuery());
+        paramsParser.queryParams(httpExchange.getRequestURI().getRawQuery());
 
     String fullContentType = httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
 
@@ -129,9 +129,9 @@ public class PinRedirectHttpHandler implements HttpHandler {
     boolean keepResponseOpen = false;
     try {
       PinResponse pinResponse = pinHandler.handle(pinExchange);
-      PinRender pinTransformer = pinResponse.getTransformer();
+      PinRender pinTransformer = pinResponse.getRender();
       pinTransformer.changeHeaders(httpExchange.getResponseHeaders());
-      keepResponseOpen = pinResponse.keepResponseOpen();
+      keepResponseOpen = pinResponse.keepOpen();
       if (!keepResponseOpen) {
         httpExchange.sendResponseHeaders(pinResponse.getStatus(), 0);
       }

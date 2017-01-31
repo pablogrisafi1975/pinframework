@@ -14,8 +14,6 @@ import java.util.Map;
 
 public class PinRenderJson implements PinRender {
 
-  public static final PinRenderJson INSTANCE = new PinRenderJson();
-
   public String render(Object model) {
     return PinGson.getInstance().toJson(model);
   }

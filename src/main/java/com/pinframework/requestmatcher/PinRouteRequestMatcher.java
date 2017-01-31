@@ -31,15 +31,16 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
     // TODO: validar que los nombres sole tengan AZaz09 y empiecen con
     // letras, ver
     // http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html#groupname
-    String routeRegex = appContext + route.replaceAll("/\\:[a-zA-Z0-9]+", "/.+");
+    String routeRegex = appContext + route.replaceAll("/\\:([a-zA-Z][a-zA-Z0-9\\-]*)", "/.+");
     routePattern = Pattern.compile(routeRegex);
-    Matcher matcher = Pattern.compile("/\\:([a-zA-Z0-9]+)").matcher(route);
+    Matcher matcher = Pattern.compile("/\\:([a-zA-Z][a-zA-Z0-9\\-]*)").matcher(route);
     while (matcher.find()) {
       String parameterName = matcher.group(1);
       parameterNameList.add(parameterName);
       // TODO:validar que no se repitan
     }
-    String captureRegex = appContext + route.replaceAll("/\\:([a-zA-Z0-9]+)", "/([^/]+)");
+    String captureRegex =
+        appContext + route.replaceAll("/\\:([a-zA-Z][a-zA-Z0-9\\-]*)", "/([^/]+)");
     capturePattern = Pattern.compile(captureRegex);
     this.contentTypeList = Collections.unmodifiableList(
         Arrays.asList(contentType).stream().map(String::toUpperCase).collect(Collectors.toList()));
@@ -71,7 +72,10 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
   public String toString() {
     String contentType =
         this.contentTypeList.isEmpty() ? "Any content type" : String.join(", ", contentTypeList);
-    return "[" + this.method + "]" + this.appContext + this.route + " (" + contentType + ")";
+    String paramList = this.parameterNameList.isEmpty() ? "No params"
+        : "Params: " + parameterNameList.stream().collect(Collectors.joining(","));
+    return "[" + this.method + "]" + this.appContext + this.route + " (" + contentType + ") ("
+        + paramList + ")";
   }
 
 }

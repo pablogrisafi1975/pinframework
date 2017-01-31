@@ -5,11 +5,10 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,27 +28,34 @@ public class PinParamsParser {
 
   /**
    * Parses the query parameters.
-   * @param decodedQuery The query string, already decoded
+   * 
+   * @param rawQuery The query string, not decoded
    * @return The parameters parsed
    */
-  public Map<String, List<String>> queryParams(String decodedQuery) {
-    if (decodedQuery == null || decodedQuery.trim().length() == 0) {
+  public Map<String, List<String>> queryParams(String rawQuery) {
+    if (rawQuery == null || rawQuery.trim().length() == 0) {
       return Collections.emptyMap();
     }
-    return Arrays.stream(decodedQuery.split("&")).map(this::splitQueryParameter)
-        .collect(Collectors.groupingBy(SimpleImmutableEntry::getKey, LinkedHashMap::new,
-            Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+    final Map<String, List<String>> queryPairs = new LinkedHashMap<String, List<String>>();
+    final String[] pairs = rawQuery.split("&");
+    for (String pair : pairs) {
+      final int idx = pair.indexOf("=");
+      final String key = idx > 0 ? PinUtils.urlDecode(pair.substring(0, idx)) : pair;
+      if (!queryPairs.containsKey(key)) {
+        queryPairs.put(key, new LinkedList<>());
+      }
+      final String value =
+          idx > 0 && pair.length() > idx + 1 ? PinUtils.urlDecode(pair.substring(idx + 1)) : null;
+      queryPairs.get(key).add(value);
+    }
+    return queryPairs;
   }
 
-  private SimpleImmutableEntry<String, String> splitQueryParameter(String it) {
-    final int idx = it.indexOf('=');
-    final String key = idx > 0 ? it.substring(0, idx) : it;
-    final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
-    return new SimpleImmutableEntry<>(key, value);
-  }
+
 
   /**
    * Check if a contentType is multipart.
+   * 
    * @param fullContentType The full content type header or null
    * @return true if starts with "multipart"
    */
@@ -62,6 +68,7 @@ public class PinParamsParser {
 
   /**
    * Parses the posted parameters according to the content type.
+   * 
    * @param fullContentType The complete content type
    * @param requestBody The body to parse
    * @return a map of parameters. Will be empty if content type is null of invalid
@@ -69,7 +76,11 @@ public class PinParamsParser {
   @SuppressWarnings("unchecked")
   public Map<String, Object> postParams(String fullContentType, InputStream requestBody) {
     if (fullContentType == null) {
-      LOG.error("No content type, parameters can not be parsed");
+      String body = PinUtils.asString(requestBody);
+      if (body != null && body.trim().length() > 0) {
+        LOG.error("No content type, parameters can not be parsed, body was {}", body);
+      }
+      return Collections.emptyMap();
     } else if (fullContentType.startsWith(PinContentType.APPLICATION_JSON)) {
       // that's angular encoding by default
       return gsonParser.fromJson(new InputStreamReader(requestBody, StandardCharsets.UTF_8),
@@ -80,7 +91,8 @@ public class PinParamsParser {
       return splitQuery.entrySet().stream()
           .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
-    LOG.error("Unknown content type, parameters can not be parsed");
+    LOG.error("Unknown content type, parameters can not be parsed, body was {}",
+        PinUtils.asString(requestBody));
     return Collections.emptyMap();
   }
 

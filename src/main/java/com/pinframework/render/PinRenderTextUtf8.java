@@ -14,7 +14,6 @@ import java.util.Map;
 
 public class PinRenderTextUtf8 implements PinRender {
 
-  public static final PinRenderTextUtf8 INSTANCE = new PinRenderTextUtf8();
 
   @Override
   public void render(Object obj, OutputStream outputStream) throws IOException {

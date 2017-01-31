@@ -3,7 +3,6 @@ package com.pinframework.response;
 import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
 import com.pinframework.PinGson;
-import com.pinframework.PinResponse;
 import com.pinframework.PinUtils;
 import com.pinframework.exception.PinIoRuntimeException;
 import com.pinframework.render.PinRenderNull;
@@ -15,7 +14,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
-public class PinResponseSse extends PinResponse {
+public class PinResponseSse extends PinBaseResponse {
   private final PrintWriter printWriter;
   private final PinExchange pinExchange;
 
@@ -88,7 +87,7 @@ public class PinResponseSse extends PinResponse {
   }
 
   @Override
-  public boolean keepResponseOpen() {
+  public boolean keepOpen() {
     return true;
   }
 

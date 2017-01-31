@@ -1,52 +1,64 @@
 package com.pinframework;
 
-import com.pinframework.response.PinResponseNotFoundJson;
-import com.pinframework.response.PinResponseNotFoundText;
-import com.pinframework.response.PinResponseOkFile;
-import com.pinframework.response.PinResponseOkJson;
-import com.pinframework.response.PinResponseOkJsut;
-import com.pinframework.response.PinResponseOkText;
+import com.pinframework.render.PinRenderFile;
+import com.pinframework.render.PinRenderJson;
+import com.pinframework.render.PinRenderJsut;
+import com.pinframework.render.PinRenderTextUtf8;
+import com.pinframework.response.PinBaseResponse;
 import com.pinframework.response.PinResponseSse;
 
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.input.CharSequenceInputStream;
 
 public final class PinResponses {
 
-  //TODO: implementar las responses basicas aca mismo
+  private static final PinRenderTextUtf8 PIN_RENDER_TEXT_UTF_8 = new PinRenderTextUtf8();
+
+  private static final PinRenderJson PIN_RENDER_JSON = new PinRenderJson();
+
+  // TODO: implementar las responses basicas aca mismo
   private PinResponses() {
     // do nothing, shut up sonar
   }
 
   public static PinResponse okText(String text) {
-    return new PinResponseOkText(text);
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, text, PIN_RENDER_TEXT_UTF_8);
   }
 
   public static PinResponse okJson(Object obj) {
-    return new PinResponseOkJson(obj);
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, obj, PIN_RENDER_JSON);
   }
 
   public static PinResponse okJsut(Object obj, String template) {
-    return new PinResponseOkJsut(obj, template);
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, new PinRenderJsut.Input(obj, template),
+        PinRenderJsut.INSTANCE);
   }
 
   public static PinResponse okDownload(InputStream inputStream, String fileName) {
-    return new PinResponseOkFile(inputStream, fileName, true);
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, inputStream,
+        new PinRenderFile(fileName, true));
   }
 
   public static PinResponse okDownload(String text, String fileName) {
-    return new PinResponseOkFile(text, fileName, true);
+    InputStream inputStream = new CharSequenceInputStream(text, StandardCharsets.UTF_8);
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, inputStream,
+        new PinRenderFile(fileName, false));
   }
 
   public static PinResponse notFoundText(String text) {
-    return new PinResponseNotFoundText(text);
+    return new PinBaseResponse(HttpURLConnection.HTTP_NOT_FOUND, text, PIN_RENDER_TEXT_UTF_8);
   }
 
   public static PinResponse notFoundJson(Object obj) {
-    return new PinResponseNotFoundJson(obj);
+    return new PinBaseResponse(HttpURLConnection.HTTP_NOT_FOUND, obj, PIN_RENDER_JSON);
   }
 
-  public static PinResponse okFile(InputStream inputStream, String filename) {
-    return new PinResponseOkFile(inputStream, filename, false);
+  public static PinResponse okFile(InputStream inputStream, String fileName) {
+    return new PinBaseResponse(HttpURLConnection.HTTP_OK, inputStream,
+        new PinRenderFile(fileName, false));
   }
 
   public static PinResponseSse okSse(PinExchange pex) {
