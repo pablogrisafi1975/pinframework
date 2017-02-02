@@ -83,9 +83,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>com.squareup.okhttp</groupId>
+			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>2.7.5</version>
+			<version>3.6.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -208,8 +208,6 @@
 					<linkXRef>true</linkXRef>
 				</configuration>
 			</plugin>
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-javadoc-plugin</artifactId> 
-				<version>2.10.4</version> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>

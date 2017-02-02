@@ -9,6 +9,9 @@ import java.util.Map;
 
 public class PinExchange {
 
+  // TODO: scar los get
+  // TODO: renombrrar postParam a bodyParams
+  // TODO: metodo param que da el primero como string
 
   private final HttpExchange httpExchange;
   private Map<String, List<String>> queryParams;
@@ -18,6 +21,7 @@ public class PinExchange {
 
   /**
    * Creates a PinExchange that wraps an HttpExchange.
+   * 
    * @param httpExchange the HttpExchange to wrap
    * @param pathParams the path encoded paramaters
    * @param queryParams the query string paramters
@@ -73,5 +77,11 @@ public class PinExchange {
     // only because headers class has restrictions
     return httpExchange.getResponseHeaders();
   }
+
+  public Object getAttribute(String key) {
+    return httpExchange.getAttribute(key);
+  }
+
+
 
 }

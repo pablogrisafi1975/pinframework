@@ -27,7 +27,8 @@ public class PinParamsParser {
   }
 
   /**
-   * Parses the query parameters.
+   * Parses the query parameters. Based on
+   * http://stackoverflow.com/questions/13592236/parse-a-uri-string-into-name-value-collection
    * 
    * @param rawQuery The query string, not decoded
    * @return The parameters parsed
