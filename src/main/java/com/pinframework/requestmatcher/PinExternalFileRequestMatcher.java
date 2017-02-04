@@ -28,7 +28,7 @@ public class PinExternalFileRequestMatcher implements PinRequestMatcher {
   }
 
   @Override
-  public boolean matches(String method, String route, String contentType) {
+  public boolean matches(String method, String route, String accept) {
     if (externalFolder == null) {
       return false;
     }

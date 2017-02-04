@@ -1,20 +1,16 @@
 package com.pinframework.httphandler;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
-import com.pinframework.PinServer;
 import com.pinframework.PinUtils;
+import com.pinframework.constant.PinHeader;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.Executors;
 
 public class PinWebjarsHttpHandler implements HttpHandler {
 
@@ -51,12 +47,12 @@ public class PinWebjarsHttpHandler implements HttpHandler {
         LOG.error("File not found for request '{}'", httpExchange.getRequestURI().getPath());
       } else {
         String mimeType = PinMimeType.fromFileName(filename);
-        httpExchange.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
+        httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE, mimeType);
         httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
         PinUtils.copy(is, httpExchange.getResponseBody());
       }
-    } catch (Exception e) {
-      LOG.error("Error on request uri '{}'", httpExchange.getRequestURI().getPath(), e);
+    } catch (Exception ex) {
+      LOG.error("Error on request uri '{}'", httpExchange.getRequestURI().getPath(), ex);
       httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
     }
     httpExchange.close();

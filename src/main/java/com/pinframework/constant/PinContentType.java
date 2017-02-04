@@ -1,10 +1,6 @@
-package com.pinframework;
+package com.pinframework.constant;
 
 public final class PinContentType {
-  /**
-   * Content-Type .
-   */
-  public static final String CONTENT_TYPE = "Content-Type";
 
   /**
    * application/json; charset=utf-8 .

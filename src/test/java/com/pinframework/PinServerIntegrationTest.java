@@ -48,25 +48,25 @@ public class PinServerIntegrationTest {
     pinServer.onGet("text-path-params/:first-key/separator/:second-key", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("path-params\n");
-      sb.append("first-key:").append(pinExchange.getPathParams().get("first-key")).append('\n');
-      sb.append("second-key:").append(pinExchange.getPathParams().get("second-key")).append('\n');
+      sb.append("first-key:").append(pinExchange.pathParams().get("first-key")).append('\n');
+      sb.append("second-key:").append(pinExchange.pathParams().get("second-key")).append('\n');
       return PinResponses.okText(sb.toString());
     });
     pinServer.onGet("text-query-params", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("query-params\n");
-      sb.append("first-key[0]:").append(pinExchange.getQueryParams().get("first-key").get(0))
+      sb.append("first-key[0]:").append(pinExchange.queryParams().get("first-key").get(0))
           .append('\n');
-      sb.append("second-key[0]:").append(pinExchange.getQueryParams().get("second-key").get(0))
+      sb.append("second-key[0]:").append(pinExchange.queryParams().get("second-key").get(0))
           .append('\n');
-      sb.append("second-key[1]:").append(pinExchange.getQueryParams().get("second-key").get(1))
+      sb.append("second-key[1]:").append(pinExchange.queryParams().get("second-key").get(1))
           .append('\n');
       return PinResponses.okText(sb.toString());
     });
     pinServer.onPost("text-body-params", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("body-params\n");
-      Map<String, Object> postParams = pinExchange.getPostParams();
+      Map<String, Object> postParams = pinExchange.bodyParams();
       sb.append("first-key[0]:").append(((List<?>) postParams.get("first-key")).get(0))
           .append('\n');
       sb.append("second-key[0]:").append(((List<?>) postParams.get("second-key")).get(0))
@@ -78,13 +78,13 @@ public class PinServerIntegrationTest {
     pinServer.onPost("text-file-params", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("file-params\n");
-      Map<String, FileParam> fileParams = pinExchange.getFileParams();
+      Map<String, FileParam> fileParams = pinExchange.fileParams();
       FileParam fileParam = fileParams.get("file-param-key");
       sb.append("file-name:").append(fileParam.getName()).append('\n');
       sb.append("file-content:").append(new String(fileParam.content(), StandardCharsets.UTF_8))
           .append('\n');
       sb.append("body-params\n");
-      Map<String, Object> postParams = pinExchange.getPostParams();
+      Map<String, Object> postParams = pinExchange.bodyParams();
       sb.append("first-key:").append(postParams.get("first-key")).append('\n');
       sb.append("second-ke:").append(postParams.get("second-key")).append('\n');
       return PinResponses.okText(sb.toString());

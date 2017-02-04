@@ -1,10 +1,10 @@
 package com.pinframework.render;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
-
+import com.pinframework.constant.PinContentType;
+import com.pinframework.constant.PinHeader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,13 +29,13 @@ public class PinRenderFile implements PinRender {
   @Override
   public void changeHeaders(Map<String, List<String>> responseHeaders) {
     if (download) {
-      PinUtils.put(responseHeaders, "Content-Disposition",
+      PinUtils.put(responseHeaders, PinHeader.CONTENT_DISPOSITION,
           "attachment; filename=\"" + PinUtils.urlEncode(fileName) + "\";");
-      PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE,
+      PinUtils.put(responseHeaders, PinHeader.CONTENT_TYPE,
           PinContentType.APPLICATION_FORCE_DOWNLOAD);
     } else {
       String mimeType = PinMimeType.fromFileName(fileName);
-      PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, mimeType);
+      PinUtils.put(responseHeaders, PinHeader.CONTENT_TYPE, mimeType);
     }
   }
 

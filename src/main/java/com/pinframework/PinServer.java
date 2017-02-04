@@ -5,13 +5,10 @@ import com.pinframework.httphandler.PinRedirectHttpHandler;
 import com.pinframework.httphandler.PinWebjarsHttpHandler;
 import com.pinframework.requestmatcher.PinRouteRequestMatcher;
 import com.sun.net.httpserver.HttpServer;
-
 import java.io.File;
 import java.util.Locale;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import sun.net.httpserver.HttpsServerImpl;
 
 public class PinServer {

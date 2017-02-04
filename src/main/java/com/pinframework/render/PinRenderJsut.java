@@ -1,12 +1,12 @@
 package com.pinframework.render;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinGson;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
+import com.pinframework.constant.PinContentType;
+import com.pinframework.constant.PinHeader;
 import com.pinframework.exception.PinFileRenderRuntimeException;
 import com.pinframework.exception.PinInitializationException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,7 +16,6 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -78,7 +77,7 @@ public class PinRenderJsut implements PinRender {
 
   @Override
   public void changeHeaders(Map<String, List<String>> responseHeaders) {
-    PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_HTML_UTF8);
+    PinUtils.put(responseHeaders, PinHeader.CONTENT_TYPE, PinContentType.TEXT_HTML_UTF8);
   }
 
 }

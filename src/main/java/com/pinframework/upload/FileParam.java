@@ -1,7 +1,6 @@
 package com.pinframework.upload;
 
 import com.pinframework.PinUtils;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
@@ -13,7 +12,14 @@ public class FileParam {
 
   private byte[] content;
 
-
+  /**
+   * Constructs a File parameter with the given values.
+   * 
+   * @param name The name of file
+   * @param contentType The automatically extracted content type
+   * @param size The size of the file
+   * @param inputStream The content of the file
+   */
   public FileParam(String name, String contentType, Long size, InputStream inputStream) {
     this.name = name;
     this.contentType = contentType;
@@ -22,9 +28,9 @@ public class FileParam {
   }
 
   /**
-   * This is NOT a getter. Content will be extracted on first call
+   * This is NOT a getter. Content will be extracted on first call.
    * 
-   * @return
+   * @return The full content of the file
    */
   public synchronized byte[] content() {
     if (content == null) {

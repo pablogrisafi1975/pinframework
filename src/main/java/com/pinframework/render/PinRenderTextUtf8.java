@@ -1,9 +1,9 @@
 package com.pinframework.render;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
-
+import com.pinframework.constant.PinContentType;
+import com.pinframework.constant.PinHeader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -28,7 +28,7 @@ public class PinRenderTextUtf8 implements PinRender {
 
   @Override
   public void changeHeaders(Map<String, List<String>> responseHeaders) {
-    PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
+    PinUtils.put(responseHeaders, PinHeader.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
   }
 
 }

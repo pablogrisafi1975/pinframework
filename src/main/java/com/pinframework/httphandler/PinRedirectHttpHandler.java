@@ -1,13 +1,13 @@
 package com.pinframework.httphandler;
 
 import com.google.gson.Gson;
-import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
 import com.pinframework.PinHandler;
 import com.pinframework.PinParamsParser;
 import com.pinframework.PinRender;
 import com.pinframework.PinRequestMatcher;
 import com.pinframework.PinResponse;
+import com.pinframework.constant.PinHeader;
 import com.pinframework.handler.PinExternalFileHandler;
 import com.pinframework.handler.PinInternalFileHandler;
 import com.pinframework.handler.PinNotFoundHandler;
@@ -19,14 +19,12 @@ import com.pinframework.upload.MultipartParams;
 import com.pinframework.upload.PinMutipartParamsParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,25 +72,25 @@ public class PinRedirectHttpHandler implements HttpHandler {
   public void handle(HttpExchange httpExchange) throws IOException {
     String route = httpExchange.getRequestURI().getPath();
     String method = httpExchange.getRequestMethod();
-    String contentType = httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
+    String accept = httpExchange.getRequestHeaders().getFirst(PinHeader.ACCEPT);
 
     /* first try services */
     for (Map.Entry<PinRequestMatcher, PinHandler> entry : routeMap.entrySet()) {
       PinRequestMatcher requestMatcher = entry.getKey();
-      if (requestMatcher.matches(method, route, contentType)) {
+      if (requestMatcher.matches(method, route, accept)) {
         PinHandler pinHandler = entry.getValue();
         process(route, httpExchange, requestMatcher, pinHandler);
         return;
       }
     }
     /* then external files */
-    if (externalFileRequestMatcher.matches(method, route, contentType)) {
+    if (externalFileRequestMatcher.matches(method, route, accept)) {
       process(route, httpExchange, externalFileRequestMatcher, externalFileHandler);
       return;
     }
 
     /* then internal files */
-    if (internalFileRequestMatcher.matches(method, route, contentType)) {
+    if (internalFileRequestMatcher.matches(method, route, accept)) {
       process(route, httpExchange, internalFileRequestMatcher, internalFileHandler);
       return;
     }
@@ -108,24 +106,24 @@ public class PinRedirectHttpHandler implements HttpHandler {
     Map<String, List<String>> queryParams =
         paramsParser.queryParams(httpExchange.getRequestURI().getRawQuery());
 
-    String fullContentType = httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
+    String fullContentType = httpExchange.getRequestHeaders().getFirst(PinHeader.CONTENT_TYPE);
 
-    Map<String, Object> postParams = null;
+    Map<String, Object> bodyParams = null;
     Map<String, FileParam> fileParams = Collections.emptyMap();
     if (paramsParser.isMultipart(fullContentType)) {
       if (uploadSupportEnabled) {
         MultipartParams multipartParams = multipartParamsParser.parse(httpExchange);
-        postParams = multipartParams.getPostParams();
-        fileParams = multipartParams.getFileParams();
+        bodyParams = multipartParams.bodyParams();
+        fileParams = multipartParams.fileParams();
       } else {
         LOG.error("Trying to upload but uploadSupportEnabled is false");
       }
     } else {
-      postParams = paramsParser.postParams(fullContentType, httpExchange.getRequestBody());
+      bodyParams = paramsParser.bodyParams(fullContentType, httpExchange.getRequestBody());
     }
 
     PinExchange pinExchange =
-        new PinExchange(httpExchange, pathParams, queryParams, postParams, fileParams);
+        new PinExchange(httpExchange, pathParams, queryParams, bodyParams, fileParams);
     boolean keepResponseOpen = false;
     try {
       PinResponse pinResponse = pinHandler.handle(pinExchange);

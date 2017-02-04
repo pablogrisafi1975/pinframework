@@ -13,9 +13,9 @@ public class PinInternalFileHandler implements PinHandler {
 
   @Override
   public PinResponse handle(PinExchange pinExchange) throws Exception {
-    String fileName = pinExchange.getPathParams().get(PinInternalFileRequestMatcher.FILE_NAME);
+    String fileName = pinExchange.pathParams().get(PinInternalFileRequestMatcher.FILE_NAME);
     String internalResourceName =
-        pinExchange.getPathParams().get(PinInternalFileRequestMatcher.INTERNAL_RESOURCE_NAME);
+        pinExchange.pathParams().get(PinInternalFileRequestMatcher.INTERNAL_RESOURCE_NAME);
     InputStream inputStream =
         PinServer.class.getClassLoader().getResourceAsStream(internalResourceName);
     return PinResponses.okFile(inputStream, fileName);

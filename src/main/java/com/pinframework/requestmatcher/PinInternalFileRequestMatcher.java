@@ -23,7 +23,7 @@ public class PinInternalFileRequestMatcher implements PinRequestMatcher {
   }
 
   @Override
-  public boolean matches(String method, String route, String contentType) {
+  public boolean matches(String method, String route, String accept) {
     if (!"GET".equals(method)) {
       LOG.error("Error trying to access '{}', wrong method '{}'", route, method);
       return false;

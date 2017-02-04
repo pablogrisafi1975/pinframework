@@ -1,7 +1,6 @@
 package com.pinframework.requestmatcher;
 
 import com.pinframework.PinRequestMatcher;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,11 +19,10 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
   private final String route;
   private final Pattern routePattern;
   private final Pattern capturePattern;
-  private final List<String> contentTypeList;
+  private final List<String> acceptList;
   private final List<String> parameterNameList = new ArrayList<>();
 
-  public PinRouteRequestMatcher(String method, String route, String appContext,
-      String... contentType) {
+  public PinRouteRequestMatcher(String method, String route, String appContext, String... accept) {
     this.method = method;
     this.route = route;
     this.appContext = appContext;
@@ -42,14 +40,14 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
     String captureRegex =
         appContext + route.replaceAll("/\\:([a-zA-Z][a-zA-Z0-9\\-]*)", "/([^/]+)");
     capturePattern = Pattern.compile(captureRegex);
-    this.contentTypeList = Collections.unmodifiableList(
-        Arrays.asList(contentType).stream().map(String::toUpperCase).collect(Collectors.toList()));
+    this.acceptList = Collections.unmodifiableList(
+        Arrays.asList(accept).stream().map(String::toUpperCase).collect(Collectors.toList()));
   }
 
   @Override
   public boolean matches(String verb, String route, String contentType) {
-    if (!contentTypeList.isEmpty() && contentType != null
-        && !contentTypeList.contains(contentType.toUpperCase())) {
+    if (!acceptList.isEmpty() && contentType != null
+        && !acceptList.contains(contentType.toUpperCase())) {
       return false;
     }
     return Objects.equals(verb, method) && this.routePattern.matcher(route).matches();
@@ -71,7 +69,7 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
   @Override
   public String toString() {
     String contentType =
-        this.contentTypeList.isEmpty() ? "Any content type" : String.join(", ", contentTypeList);
+        this.acceptList.isEmpty() ? "Accept:Anything" : "Accept:" + String.join(", ", acceptList);
     String paramList = this.parameterNameList.isEmpty() ? "No params"
         : "Params: " + parameterNameList.stream().collect(Collectors.joining(","));
     return "[" + this.method + "]" + this.appContext + this.route + " (" + contentType + ") ("

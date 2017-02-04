@@ -1,7 +1,7 @@
 package com.pinframework;
 
 import com.google.gson.Gson;
-
+import com.pinframework.constant.PinContentType;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -75,7 +75,7 @@ public class PinParamsParser {
    * @return a map of parameters. Will be empty if content type is null of invalid
    */
   @SuppressWarnings("unchecked")
-  public Map<String, Object> postParams(String fullContentType, InputStream requestBody) {
+  public Map<String, Object> bodyParams(String fullContentType, InputStream requestBody) {
     if (fullContentType == null) {
       String body = PinUtils.asString(requestBody);
       if (body != null && body.trim().length() > 0) {

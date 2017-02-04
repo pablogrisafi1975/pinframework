@@ -25,10 +25,10 @@ public class Main {
 
     pinServer.onGet("hello3/sub1", pinExchange -> PinResponses.okText("hello3-ok-sub1"));
     pinServer.onGet("hello4/:param1", pinExchange -> PinResponses
-        .okText("hello4-ok-" + pinExchange.getPathParams().get("param1")));
+        .okText("hello4-ok-" + pinExchange.pathParams().get("param1")));
     pinServer.onGet("hello5/:param1/nada/:param2/nada",
-        pinExchange -> PinResponses.okText("hello5-ok-" + pinExchange.getPathParams().get("param1")
-            + "-" + pinExchange.getPathParams().get("param2")));
+        pinExchange -> PinResponses.okText("hello5-ok-" + pinExchange.pathParams().get("param1")
+            + "-" + pinExchange.pathParams().get("param2")));
 
     Map<String, String> map = new HashMap<>();
     map.put("key0", "value0");

@@ -1,13 +1,13 @@
 package com.pinframework.response;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
 import com.pinframework.PinGson;
 import com.pinframework.PinUtils;
+import com.pinframework.constant.PinContentType;
+import com.pinframework.constant.PinHeader;
 import com.pinframework.exception.PinIoRuntimeException;
 import com.pinframework.render.PinRenderNull;
 import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -27,13 +27,13 @@ public class PinResponseSse extends PinBaseResponse {
     super(HttpURLConnection.HTTP_OK, pinExchange, PinRenderNull.INSTANCE);
     this.pinExchange = pinExchange;
     HttpExchange httpExchange = pinExchange.raw();
-    httpExchange.getResponseHeaders().add(PinContentType.CONTENT_TYPE,
-        PinContentType.TEXT_EVENT_STREAM);
-    httpExchange.getResponseHeaders().add("CharacterEncoding", "UTF-8");
-    httpExchange.getResponseHeaders().add("cache-control", "no-cache");
-    httpExchange.getResponseHeaders().add("connection", "keep-alive");
+    httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE, PinContentType.TEXT_EVENT_STREAM);
+    httpExchange.getResponseHeaders().add(PinHeader.CHARACTER_ENCODING,
+        StandardCharsets.UTF_8.name());
+    httpExchange.getResponseHeaders().add(PinHeader.CACHE_CONTROL, "no-cache");
+    httpExchange.getResponseHeaders().add(PinHeader.CONNECTION, "keep-alive");
     try {
-      httpExchange.sendResponseHeaders(200, 0);
+      httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
       httpExchange.getResponseBody().flush();
       PinUtils.fullyRead(httpExchange.getRequestBody());
     } catch (IOException ex) {

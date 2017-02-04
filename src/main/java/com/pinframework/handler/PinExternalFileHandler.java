@@ -13,9 +13,9 @@ public class PinExternalFileHandler implements PinHandler {
 
   @Override
   public PinResponse handle(PinExchange pinExchange) throws Exception {
-    String fileName = pinExchange.getPathParams().get(PinExternalFileRequestMatcher.FILE_NAME);
+    String fileName = pinExchange.pathParams().get(PinExternalFileRequestMatcher.FILE_NAME);
     String externalFileName =
-        pinExchange.getPathParams().get(PinExternalFileRequestMatcher.EXTERNAL_FILE_NAME);
+        pinExchange.pathParams().get(PinExternalFileRequestMatcher.EXTERNAL_FILE_NAME);
     InputStream inputStream = new FileInputStream(externalFileName);
     return PinResponses.okFile(inputStream, fileName);
   }

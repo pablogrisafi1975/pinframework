@@ -1,10 +1,10 @@
 package com.pinframework.render;
 
-import com.pinframework.PinContentType;
 import com.pinframework.PinGson;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
-
+import com.pinframework.constant.PinContentType;
+import com.pinframework.constant.PinHeader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -32,8 +32,7 @@ public class PinRenderJson implements PinRender {
 
   @Override
   public void changeHeaders(Map<String, List<String>> responseHeaders) {
-    PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE,
-        PinContentType.APPLICATION_JSON_UTF8);
+    PinUtils.put(responseHeaders, PinHeader.CONTENT_TYPE, PinContentType.APPLICATION_JSON_UTF8);
   }
 
 }
