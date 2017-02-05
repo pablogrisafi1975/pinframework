@@ -42,8 +42,7 @@ public final class PinResponses {
 
   public static PinResponse okDownload(String text, String fileName) {
     InputStream inputStream = new CharSequenceInputStream(text, StandardCharsets.UTF_8);
-    return new PinBaseResponse(HttpURLConnection.HTTP_OK, inputStream,
-        new PinRenderFile(fileName, true));
+    return okDownload(inputStream, fileName);
   }
 
   public static PinResponse notFoundText(String text) {

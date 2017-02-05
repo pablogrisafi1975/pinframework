@@ -2,6 +2,7 @@ package com.pinframework.httphandler;
 
 import com.pinframework.PinMimeType;
 import com.pinframework.PinUtils;
+import com.pinframework.constant.PinContentType;
 import com.pinframework.constant.PinHeader;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -16,31 +17,35 @@ public class PinWebjarsHttpHandler implements HttpHandler {
 
   private static final String WEBJARS_PATH = "META-INF/resources/webjars";
   private static final Logger LOG = LoggerFactory.getLogger(PinWebjarsHttpHandler.class);
-  private final boolean autoMinimize;
+  private final boolean preferMinified;
 
 
-  public PinWebjarsHttpHandler(boolean autoMinimize) {
-    this.autoMinimize = autoMinimize;
+  public PinWebjarsHttpHandler(boolean preferMinified) {
+    this.preferMinified = preferMinified;
   }
 
   @Override
   public void handle(HttpExchange httpExchange) throws IOException {
 
     if (!"GET".equals(httpExchange.getRequestMethod())) {
-      LOG.error("Error trying to access '{}', wrong method '{}'",
-          httpExchange.getRequestURI().getPath(), httpExchange.getRequestMethod());
+      String message = "Error trying to access '" + httpExchange.getRequestURI().getPath()
+          + "', wrong method '" + httpExchange.getRequestMethod() + "'";
+      LOG.error(message);
+      httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
       httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
+      httpExchange.getResponseBody().write(message.getBytes(StandardCharsets.UTF_8));
       httpExchange.close();
       return;
     }
     String filename = httpExchange.getRequestURI().getPath()
         .replaceFirst("\\Q" + httpExchange.getHttpContext().getPath() + "\\E", "");
 
-    // filename /angularjs/1.4.0/angular.min.js
-
     try (InputStream is = findInputStream(filename)) {
 
       if (is == null) {
+        httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE,
+            PinContentType.TEXT_PLAIN_UTF8);
+        httpExchange.getResponseHeaders().add(PinHeader.CONNECTION, "close");
         httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
         httpExchange.getResponseBody().write(
             ("File '" + filename + "' not found in webjars").getBytes(StandardCharsets.UTF_8));
@@ -48,18 +53,22 @@ public class PinWebjarsHttpHandler implements HttpHandler {
       } else {
         String mimeType = PinMimeType.fromFileName(filename);
         httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE, mimeType);
+        httpExchange.getResponseHeaders().add(PinHeader.CONNECTION, "close");
         httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
         PinUtils.copy(is, httpExchange.getResponseBody());
       }
     } catch (Exception ex) {
+      httpExchange.getResponseHeaders().add(PinHeader.CONNECTION, "close");
+      httpExchange.getResponseHeaders().add(PinHeader.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
       LOG.error("Error on request uri '{}'", httpExchange.getRequestURI().getPath(), ex);
       httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
+    } finally {
+      httpExchange.close();
     }
-    httpExchange.close();
   }
 
   private InputStream findInputStream(String fileName) throws IOException {
-    if (autoMinimize) {
+    if (preferMinified) {
       int lastIndexOfDot = fileName.lastIndexOf('.');
       String fileNameNoExt = fileName.substring(0, lastIndexOfDot);
       if (!fileNameNoExt.endsWith(".min")) { // already minimized

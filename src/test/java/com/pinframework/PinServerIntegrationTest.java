@@ -24,8 +24,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,11 +31,10 @@ import org.testng.annotations.Test;
 
 @Test
 public class PinServerIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(PinServerIntegrationTest.class);
 
   private static final int PORT = 7777;
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)
-      .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(false).build();
+      .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
 
   private PinServer pinServer;
 
@@ -67,6 +64,7 @@ public class PinServerIntegrationTest {
         .appContext("integration-test")
         .externalFolder(externalFolder.toString())
         .uploadSupportEnabled(true)
+        .webjarsPreferMinified(true)
         .build();
     //@formatter:on
     pinServer.onGet("text-no-params", pinExchange -> PinResponses.okText("sample-text"));
@@ -87,6 +85,7 @@ public class PinServerIntegrationTest {
       sb.append("second-key:").append(pinExchange.pathParams().get("second-key")).append('\n');
       return PinResponses.okText(sb.toString());
     });
+
     pinServer.onGet("text-query-params", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("query-params\n");
@@ -139,7 +138,7 @@ public class PinServerIntegrationTest {
   @AfterClass
   public void tearDown() throws IOException, InterruptedException {
     pinServer.stop(1);
-
+    Thread.sleep(2000);
     Files.delete(externalHtmlFile);
     Files.delete(externalTextFile);
     Files.delete(externalFolder);
@@ -481,6 +480,70 @@ public class PinServerIntegrationTest {
     assertEquals(response.body().string(), "file-content");
     assertTrue(response.header("Content-Disposition").contains("file-name"));
   }
+
+  @Test
+  public void webjarsFound() throws IOException {
+    Request request = new Request.Builder().url(
+        "http://localhost:" + PORT + "/integration-test/webjars/normalize.css/3.0.2/normalize.css")
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "css");
+    assertTrue(response.body().string()
+        .startsWith("/*! normalize.css v3.0.2 | MIT License | git.io/normalize */"));
+  }
+
+  @Test
+  public void webjarsPost() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT
+            + "/integration-test/webjars/normalize.css/3.0.2/normalize.css")
+        .post(RequestBody.create(MediaType.parse("text/plain"),
+            "new content".getBytes(StandardCharsets.UTF_8)))
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 405);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    assertEquals(response.body().string(),
+        "Error trying to access '/integration-test/webjars/normalize.css/3.0.2/normalize.css', wrong method 'POST'");
+  }
+
+  @Test
+  public void webjarsMinifiedFound() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT + "/integration-test/webjars/animate.css/3.5.2/animate.css")
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "css");
+    assertTrue(response.body().string()
+        .contains(".animated{-webkit-animation-duration:1s;animation-duration:1s;"));
+  }
+
+  @Test
+  public void webjarsNotFound() throws IOException {
+    Request request = new Request.Builder().url("http://localhost:" + PORT
+        + "/integration-test/webjars/normalize.css/3.0.2/normalize-wrong.css").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 404);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    assertEquals(response.body().string(),
+        "File '/normalize.css/3.0.2/normalize-wrong.css' not found in webjars");
+  }
+
+
 }
 
 
