@@ -23,7 +23,9 @@ public class PinRenderFile implements PinRender {
 
   @Override
   public void render(Object obj, OutputStream outputStream) throws IOException {
-    PinUtils.copy((InputStream) obj, outputStream);
+    InputStream is = (InputStream) obj;
+    PinUtils.copy(is, outputStream);
+    is.close();
   }
 
   @Override

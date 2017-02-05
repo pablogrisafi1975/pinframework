@@ -6,11 +6,9 @@ import com.pinframework.render.PinRenderJsut;
 import com.pinframework.render.PinRenderTextUtf8;
 import com.pinframework.response.PinBaseResponse;
 import com.pinframework.response.PinResponseSse;
-
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-
 import org.apache.commons.io.input.CharSequenceInputStream;
 
 public final class PinResponses {
@@ -45,7 +43,7 @@ public final class PinResponses {
   public static PinResponse okDownload(String text, String fileName) {
     InputStream inputStream = new CharSequenceInputStream(text, StandardCharsets.UTF_8);
     return new PinBaseResponse(HttpURLConnection.HTTP_OK, inputStream,
-        new PinRenderFile(fileName, false));
+        new PinRenderFile(fileName, true));
   }
 
   public static PinResponse notFoundText(String text) {

@@ -5,7 +5,6 @@ import com.pinframework.PinHandler;
 import com.pinframework.PinResponse;
 import com.pinframework.PinResponses;
 import com.pinframework.requestmatcher.PinExternalFileRequestMatcher;
-
 import java.io.FileInputStream;
 import java.io.InputStream;
 

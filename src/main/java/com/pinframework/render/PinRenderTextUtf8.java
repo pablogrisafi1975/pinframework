@@ -17,13 +17,11 @@ public class PinRenderTextUtf8 implements PinRender {
 
   @Override
   public void render(Object obj, OutputStream outputStream) throws IOException {
-    if (obj != null) {
-      PrintWriter pw =
-          new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false);
-      pw.write(obj.toString());
-      pw.flush();
-      pw.close();
-    }
+    PrintWriter pw =
+        new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false);
+    pw.write(String.valueOf(obj));
+    pw.flush();
+    pw.close();
   }
 
   @Override

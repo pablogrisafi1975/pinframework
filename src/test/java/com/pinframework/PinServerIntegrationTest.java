@@ -1,11 +1,15 @@
 package com.pinframework;
 
+
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import com.google.gson.Gson;
 import com.pinframework.upload.FileParam;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,30 +24,52 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+
 @Test
 public class PinServerIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(PinServerIntegrationTest.class);
 
   private static final int PORT = 7777;
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)
       .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(false).build();
+
   private PinServer pinServer;
+
+  private Path externalFolder;
+
+  private Path externalTextFile;
+
+  private Path externalHtmlFile;
 
   /**
    * Initialize the server to test.
+   * 
+   * @throws IOException if can not create temp files
    */
   @BeforeClass
-  public void setUp() {
+  public void setUp() throws IOException {
+    externalFolder = Files.createTempDirectory("external-temp-folder");
+    externalTextFile = Files.createTempFile(externalFolder, "external-txt-file", ".txt");
+    Files.write(externalTextFile, "external-txt-file-content".getBytes(StandardCharsets.UTF_8));
+    externalHtmlFile = Files.createTempFile(externalFolder, "external-html-file", ".html");
+    Files.write(externalHtmlFile,
+        "<html><body>external-html-file-content</body></html>".getBytes(StandardCharsets.UTF_8));
+
     //@formatter:off
     pinServer = new PinServerBuilder()
         .port(PORT)
         .appContext("integration-test")
+        .externalFolder(externalFolder.toString())
         .uploadSupportEnabled(true)
         .build();
     //@formatter:on
+    pinServer.onGet("text-no-params", pinExchange -> PinResponses.okText("sample-text"));
     pinServer.onGet("text-no-params", pinExchange -> PinResponses.okText("sample-text"));
     pinServer.onGet("text-path-params/:first-key/separator/:second-key", pinExchange -> {
       StringBuilder sb = new StringBuilder();
@@ -90,12 +116,30 @@ public class PinServerIntegrationTest {
       return PinResponses.okText(sb.toString());
     });
 
+    pinServer.onGet("file-to-download", pinExchange -> {
+      return PinResponses.okDownload("file-content", "file-name.txt");
+    });
+
     pinServer.start();
   }
 
+  /**
+   * Shuts down server, clear temp files.
+   * 
+   */
   @AfterClass
-  public void tearDown() {
+  public void tearDown() throws IOException, InterruptedException {
     pinServer.stop(1);
+
+    Thread.sleep(2000);
+
+    try {
+      Files.delete(externalHtmlFile);
+      Files.delete(externalTextFile);
+      Files.delete(externalFolder);
+    } catch (IOException ex) {
+      LOG.error("Error deleting file", ex);
+    }
   }
 
   @Test
@@ -125,6 +169,21 @@ public class PinServerIntegrationTest {
     assertEquals(response.body().contentType().charset(), StandardCharsets.UTF_8);
     assertEquals(response.body().contentType().type(), "text");
     assertEquals(response.body().contentType().subtype(), "plain");
+  }
+
+  @Test
+  public void textNoParamsNotFoundAcceptJson() throws IOException {
+    Request request = new Request.Builder().header("Accept", "application/json")
+        .url("http://localhost:" + PORT + "/integration-test/text-no-params-non-existent").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 404);
+    assertEquals(response.body().string(),
+        "{\"requestUri\":\"/integration-test/text-no-params-non-existent\"}");
+    assertEquals(response.body().contentType().charset(), StandardCharsets.UTF_8);
+    assertEquals(response.body().contentType().type(), "application");
+    assertEquals(response.body().contentType().subtype(), "json");
   }
 
   @Test
@@ -291,7 +350,105 @@ public class PinServerIntegrationTest {
         "file-params\n" + "file-name:fileName.txt\n" + "file-content:this is the content\n"
             + "body-params\n" + "first-key:first-key\n" + "second-ke:second-value\n");
 
+  }
 
+  @Test
+  public void externalTextFileFound() throws IOException {
+    Request request = new Request.Builder()
+        .url(
+            "http://localhost:" + PORT + "/integration-test/" + externalTextFile.toFile().getName())
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    assertEquals(response.body().string(), "external-txt-file-content");
+  }
+
+  @Test
+  public void externalPostFile() throws IOException {
+    Request request = new Request.Builder()
+        .url(
+            "http://localhost:" + PORT + "/integration-test/" + externalTextFile.toFile().getName())
+        .post(RequestBody.create(MediaType.parse("text/plain"), "content")).build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 404);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    String bodyAsString = response.body().string();
+    assertTrue(bodyAsString.startsWith("Can not find /integration-test/external-txt-file"));
+  }
+
+  @Test
+  public void externalHtmlFileFound() throws IOException {
+    Request request = new Request.Builder()
+        .url(
+            "http://localhost:" + PORT + "/integration-test/" + externalHtmlFile.toFile().getName())
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "html");
+    assertEquals(response.body().string(), "<html><body>external-html-file-content</body></html>");
+  }
+
+  @Test
+  public void internalTextFileFound() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT + "/integration-test/internal-txt-file.txt").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    assertEquals(response.body().string(), "internal-txt-file-content");
+  }
+
+  @Test
+  public void internalHtmlFileFound() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT + "/integration-test/internal-html-file.html").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "html");
+    assertEquals(response.body().string(), "<html><body>internal-html-file-content</body></html>");
+  }
+
+  @Test
+  public void tryToTraversalTree() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT + "/integration-test/../../../").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 404);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "html");
+    assertEquals(response.body().string(), "<h1>404 Not Found</h1>No context found for request");
+  }
+
+  @Test
+  public void downloadFile() throws IOException {
+    Request request = new Request.Builder()
+        .url("http://localhost:" + PORT + "/integration-test/file-to-download").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "application");
+    assertEquals(response.body().contentType().subtype(), "force-download");
+    assertEquals(response.body().string(), "file-content");
+    assertTrue(response.header("Content-Disposition").contains("file-name"));
   }
 }
 
