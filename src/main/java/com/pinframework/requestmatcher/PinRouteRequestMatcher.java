@@ -41,13 +41,13 @@ public class PinRouteRequestMatcher implements PinRequestMatcher {
         appContext + route.replaceAll("/\\:([a-zA-Z][a-zA-Z0-9\\-]*)", "/([^/]+)");
     capturePattern = Pattern.compile(captureRegex);
     this.acceptList = Collections.unmodifiableList(
-        Arrays.asList(accept).stream().map(String::toUpperCase).collect(Collectors.toList()));
+        Arrays.asList(accept).stream().map(String::toLowerCase).collect(Collectors.toList()));
   }
 
   @Override
   public boolean matches(String verb, String route, String contentType) {
     if (!acceptList.isEmpty() && contentType != null
-        && !acceptList.contains(contentType.toUpperCase())) {
+        && !acceptList.contains(contentType.toLowerCase())) {
       return false;
     }
     return Objects.equals(verb, method) && this.routePattern.matcher(route).matches();

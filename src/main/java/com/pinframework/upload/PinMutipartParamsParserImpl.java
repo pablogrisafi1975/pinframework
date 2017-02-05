@@ -22,19 +22,19 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 public class PinMutipartParamsParserImpl implements PinMutipartParamsParser {
 
   @Override
-  public MultipartParams parse(HttpExchange httpExchange) {
+  public PinMultipartParams parse(HttpExchange httpExchange) {
     RequestContext requestContext = new PinHttpHandlerRequestContext(httpExchange);
     DiskFileItemFactory diskItemFactory = new DiskFileItemFactory();
     ServletFileUpload up = new ServletFileUpload(diskItemFactory);
     try {
       List<FileItem> fileItems = up.parseRequest(requestContext);
-      Map<String, FileParam> fileParams =
+      Map<String, PinFileParam> fileParams =
           Collections.unmodifiableMap(fileItems.stream().filter(fi -> !fi.isFormField())
               .collect(Collectors.toMap(fi -> fi.getFieldName(), fi -> createFileParam(fi))));
       Map<String, Object> postParams =
           Collections.unmodifiableMap(fileItems.stream().filter(fi -> fi.isFormField())
               .collect(Collectors.toMap(fi -> fi.getFieldName(), fi -> utf8Value(fi))));
-      return new MultipartParams(fileParams, postParams);
+      return new PinMultipartParams(fileParams, postParams);
     } catch (FileUploadException ex) {
       throw new PinFileUploadRuntimeException(ex);
     }
@@ -48,9 +48,9 @@ public class PinMutipartParamsParserImpl implements PinMutipartParamsParser {
     }
   }
 
-  private FileParam createFileParam(FileItem fi) {
+  private PinFileParam createFileParam(FileItem fi) {
     try {
-      return new FileParam(fi.getName(), fi.getContentType(), fi.getSize(), fi.getInputStream());
+      return new PinFileParam(fi.getName(), fi.getContentType(), fi.getSize(), fi.getInputStream());
     } catch (IOException ex) {
       throw new PinIoRuntimeException(ex);
     }

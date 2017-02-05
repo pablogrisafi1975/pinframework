@@ -5,7 +5,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import com.google.gson.Gson;
-import com.pinframework.upload.FileParam;
+import com.pinframework.upload.PinFileParam;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -70,7 +70,16 @@ public class PinServerIntegrationTest {
         .build();
     //@formatter:on
     pinServer.onGet("text-no-params", pinExchange -> PinResponses.okText("sample-text"));
-    pinServer.onGet("text-no-params", pinExchange -> PinResponses.okText("sample-text"));
+
+    pinServer.onGet("accept-depending", "text/plain", pinExchange -> {
+      return PinResponses.okText("accept-depending-text");
+    });
+    pinServer.onGet("accept-depending", "application/json", pinExchange -> {
+      Map<String, String> map = new HashMap<>();
+      map.put("key", "accept-depending-json");
+      return PinResponses.okJson(map);
+    });
+
     pinServer.onGet("text-path-params/:first-key/separator/:second-key", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("path-params\n");
@@ -104,8 +113,8 @@ public class PinServerIntegrationTest {
     pinServer.onPost("text-file-params", pinExchange -> {
       StringBuilder sb = new StringBuilder();
       sb.append("file-params\n");
-      Map<String, FileParam> fileParams = pinExchange.fileParams();
-      FileParam fileParam = fileParams.get("file-param-key");
+      Map<String, PinFileParam> fileParams = pinExchange.fileParams();
+      PinFileParam fileParam = fileParams.get("file-param-key");
       sb.append("file-name:").append(fileParam.getName()).append('\n');
       sb.append("file-content:").append(new String(fileParam.content(), StandardCharsets.UTF_8))
           .append('\n');
@@ -131,15 +140,9 @@ public class PinServerIntegrationTest {
   public void tearDown() throws IOException, InterruptedException {
     pinServer.stop(1);
 
-    Thread.sleep(2000);
-
-    try {
-      Files.delete(externalHtmlFile);
-      Files.delete(externalTextFile);
-      Files.delete(externalFolder);
-    } catch (IOException ex) {
-      LOG.error("Error deleting file", ex);
-    }
+    Files.delete(externalHtmlFile);
+    Files.delete(externalTextFile);
+    Files.delete(externalFolder);
   }
 
   @Test
@@ -169,6 +172,34 @@ public class PinServerIntegrationTest {
     assertEquals(response.body().contentType().charset(), StandardCharsets.UTF_8);
     assertEquals(response.body().contentType().type(), "text");
     assertEquals(response.body().contentType().subtype(), "plain");
+  }
+
+  @Test
+  public void acceptDependingText() throws IOException {
+    Request request = new Request.Builder().header("Accept", "text/plain")
+        .url("http://localhost:" + PORT + "/integration-test/accept-depending").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().charset(), StandardCharsets.UTF_8);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "plain");
+    assertEquals(response.body().string(), "accept-depending-text");
+  }
+
+  @Test
+  public void acceptDependingJson() throws IOException {
+    Request request = new Request.Builder().header("Accept", "application/json")
+        .url("http://localhost:" + PORT + "/integration-test/accept-depending").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().charset(), StandardCharsets.UTF_8);
+    assertEquals(response.body().contentType().type(), "application");
+    assertEquals(response.body().contentType().subtype(), "json");
+    assertEquals(response.body().string(), "{\"key\":\"accept-depending-json\"}");
   }
 
   @Test

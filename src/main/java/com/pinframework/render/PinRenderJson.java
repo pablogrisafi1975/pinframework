@@ -14,14 +14,6 @@ import java.util.Map;
 
 public class PinRenderJson implements PinRender {
 
-  public String render(Object model) {
-    return PinGson.getInstance().toJson(model);
-  }
-
-  public void render(Object model, Appendable writter) {
-    PinGson.getInstance().toJson(model, writter);
-  }
-
   @Override
   public void render(Object obj, OutputStream outputStream) throws IOException {
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));

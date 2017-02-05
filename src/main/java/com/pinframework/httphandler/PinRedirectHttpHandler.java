@@ -14,8 +14,8 @@ import com.pinframework.handler.PinNotFoundHandler;
 import com.pinframework.requestmatcher.PinExternalFileRequestMatcher;
 import com.pinframework.requestmatcher.PinInternalFileRequestMatcher;
 import com.pinframework.requestmatcher.PinNotFoundRequestMatcher;
-import com.pinframework.upload.FileParam;
-import com.pinframework.upload.MultipartParams;
+import com.pinframework.upload.PinFileParam;
+import com.pinframework.upload.PinMultipartParams;
 import com.pinframework.upload.PinMutipartParamsParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -109,10 +109,10 @@ public class PinRedirectHttpHandler implements HttpHandler {
     String fullContentType = httpExchange.getRequestHeaders().getFirst(PinHeader.CONTENT_TYPE);
 
     Map<String, Object> bodyParams = null;
-    Map<String, FileParam> fileParams = Collections.emptyMap();
+    Map<String, PinFileParam> fileParams = Collections.emptyMap();
     if (paramsParser.isMultipart(fullContentType)) {
       if (uploadSupportEnabled) {
-        MultipartParams multipartParams = multipartParamsParser.parse(httpExchange);
+        PinMultipartParams multipartParams = multipartParamsParser.parse(httpExchange);
         bodyParams = multipartParams.bodyParams();
         fileParams = multipartParams.fileParams();
       } else {

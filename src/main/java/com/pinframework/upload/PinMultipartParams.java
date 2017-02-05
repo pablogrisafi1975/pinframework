@@ -2,17 +2,17 @@ package com.pinframework.upload;
 
 import java.util.Map;
 
-public class MultipartParams {
+public class PinMultipartParams {
 
-  private final Map<String, FileParam> fileParams;
+  private final Map<String, PinFileParam> fileParams;
   private final Map<String, Object> bodyParams;
 
-  public MultipartParams(Map<String, FileParam> fileParams, Map<String, Object> bodyParams) {
+  public PinMultipartParams(Map<String, PinFileParam> fileParams, Map<String, Object> bodyParams) {
     this.fileParams = fileParams;
     this.bodyParams = bodyParams;
   }
 
-  public Map<String, FileParam> fileParams() {
+  public Map<String, PinFileParam> fileParams() {
     return fileParams;
   }
 

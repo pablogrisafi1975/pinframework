@@ -53,15 +53,57 @@ public class PinServer {
     return on(routeRequestMatcher, handler);
   }
 
+  public PinServer on(String method, String route, String accept, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher(method.toUpperCase(Locale.ENGLISH), route, appContext, accept);
+    return on(routeRequestMatcher, handler);
+  }
+
   public PinServer onGet(String route, PinHandler handler) {
     PinRouteRequestMatcher routeRequestMatcher =
         new PinRouteRequestMatcher("GET", route, appContext);
     return on(routeRequestMatcher, handler);
   }
 
+  public PinServer onGet(String route, String accept, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("GET", route, appContext, accept);
+    return on(routeRequestMatcher, handler);
+  }
+
   public PinServer onPost(String route, PinHandler handler) {
     PinRouteRequestMatcher routeRequestMatcher =
         new PinRouteRequestMatcher("POST", route, appContext);
+    return on(routeRequestMatcher, handler);
+  }
+
+  public PinServer onPost(String route, String accept, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("POST", route, appContext, accept);
+    return on(routeRequestMatcher, handler);
+  }
+
+  public PinServer onPut(String route, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("PUT", route, appContext);
+    return on(routeRequestMatcher, handler);
+  }
+
+  public PinServer onPut(String route, String accept, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("PUT", route, appContext, accept);
+    return on(routeRequestMatcher, handler);
+  }
+
+  public PinServer onDelete(String route, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("DELETE", route, appContext);
+    return on(routeRequestMatcher, handler);
+  }
+
+  public PinServer onDelete(String route, String accept, PinHandler handler) {
+    PinRouteRequestMatcher routeRequestMatcher =
+        new PinRouteRequestMatcher("DELETE", route, appContext, accept);
     return on(routeRequestMatcher, handler);
   }
 
@@ -87,5 +129,7 @@ public class PinServer {
   public HttpServer raw() {
     return httpServer;
   }
+
+
 
 }

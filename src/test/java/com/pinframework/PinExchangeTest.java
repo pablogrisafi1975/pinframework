@@ -2,7 +2,7 @@ package com.pinframework;
 
 import static org.testng.Assert.assertEquals;
 
-import com.pinframework.upload.FileParam;
+import com.pinframework.upload.PinFileParam;
 import com.sun.net.httpserver.HttpExchange;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class PinExchangeTest {
     bodyParams.put("bodyKey7", Arrays.asList());
     bodyParams.put("bodyKey8", null);
 
-    Map<String, FileParam> fileParams = new HashMap<>();
+    Map<String, PinFileParam> fileParams = new HashMap<>();
     pinExchange = new PinExchange(httpExchange, pathParams, queryParams, bodyParams, fileParams);
   }
 

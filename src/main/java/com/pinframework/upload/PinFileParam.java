@@ -4,7 +4,7 @@ import com.pinframework.PinUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-public class FileParam {
+public class PinFileParam {
   private final String name;
   private final String contentType;
   private final Long size;
@@ -20,7 +20,7 @@ public class FileParam {
    * @param size The size of the file
    * @param inputStream The content of the file
    */
-  public FileParam(String name, String contentType, Long size, InputStream inputStream) {
+  public PinFileParam(String name, String contentType, Long size, InputStream inputStream) {
     this.name = name;
     this.contentType = contentType;
     this.size = size;

@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 public interface PinMutipartParamsParser {
 
-  MultipartParams parse(HttpExchange httpExchange);
+  PinMultipartParams parse(HttpExchange httpExchange);
 
   /**
    * Tries to create the default implementations.

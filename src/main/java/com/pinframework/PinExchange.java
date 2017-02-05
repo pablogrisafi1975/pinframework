@@ -1,6 +1,6 @@
 package com.pinframework;
 
-import com.pinframework.upload.FileParam;
+import com.pinframework.upload.PinFileParam;
 import com.sun.net.httpserver.HttpExchange;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,7 +13,7 @@ public class PinExchange {
   private Map<String, List<String>> queryParams;
   private Map<String, Object> bodyParams;
   private Map<String, String> pathParams;
-  private Map<String, FileParam> fileParams;
+  private Map<String, PinFileParam> fileParams;
 
   /**
    * Creates a PinExchange that wraps an HttpExchange.
@@ -26,7 +26,7 @@ public class PinExchange {
    */
   public PinExchange(HttpExchange httpExchange, Map<String, String> pathParams,
       Map<String, List<String>> queryParams, Map<String, Object> bodyParams,
-      Map<String, FileParam> fileParams) {
+      Map<String, PinFileParam> fileParams) {
     this.httpExchange = httpExchange;
     this.pathParams = Collections.unmodifiableMap(pathParams);
     this.queryParams = Collections.unmodifiableMap(queryParams);
@@ -53,7 +53,7 @@ public class PinExchange {
    * 
    * @return The uploaded files
    */
-  public Map<String, FileParam> fileParams() {
+  public Map<String, PinFileParam> fileParams() {
     return fileParams;
   }
 
