@@ -1,8 +1,8 @@
 package com.pinframework;
 
-
-import static com.pinframework.PinServerSetupIntegrationTest.BASE_URL;
-import static com.pinframework.PinServerSetupIntegrationTest.PORT;
+import static com.pinframework.IntegrationSuiteListener.APP_CONTEXT;
+import static com.pinframework.IntegrationSuiteListener.BASE_URL;
+import static com.pinframework.IntegrationSuiteListener.PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -22,14 +22,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-
+@Listeners(IntegrationSuiteListener.class)
 @Test(groups = "integration", suiteName = "integration")
-public class PinServerIntegrationTest {
+public class PinServerServicesIntegrationTest {
 
-  private static final String APP_CONTEXT =
-      PinServerSetupIntegrationTest.APP_CONTEXT.replaceAll("/", "");
+  private static final String STRIPPED_APP_CONTEXT = APP_CONTEXT.replaceAll("/", "");
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)
       .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
 
@@ -136,7 +136,7 @@ public class PinServerIntegrationTest {
   @Test
   public void textQueryParamsFound() throws IOException {
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
+        .addPathSegment(STRIPPED_APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", "first-value")
         .addQueryParameter("second-key", "second-value-0")
         .addQueryParameter("second-key", "second-value-1").build();
@@ -156,7 +156,7 @@ public class PinServerIntegrationTest {
   public void textQueryParamsFoundCharsetSpaces() throws IOException {
     //@formatter:off
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
+        .addPathSegment(STRIPPED_APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", "ááá ééé")
         .addQueryParameter("second-key", "#lalala")
         .addQueryParameter("second-key", "&a=3&")
@@ -178,7 +178,7 @@ public class PinServerIntegrationTest {
   public void textQueryParamsFoundCharsetEmpty() throws IOException {
     //@formatter:off
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
+        .addPathSegment(STRIPPED_APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", null)
         .addQueryParameter("second-key", "#lalala")
         .addQueryParameter("second-key", null)

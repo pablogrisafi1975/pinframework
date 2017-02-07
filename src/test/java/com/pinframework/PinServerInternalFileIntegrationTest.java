@@ -1,7 +1,7 @@
 package com.pinframework;
 
 
-import static com.pinframework.PinServerSetupIntegrationTest.BASE_URL;
+import static com.pinframework.IntegrationSuiteListener.BASE_URL;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
@@ -9,10 +9,11 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-
-@Test(groups = "integration", suiteName = "integration")
+@Listeners(IntegrationSuiteListener.class)
+@Test(groups = "integration", suiteName = "integration", testName = "all-integration-tests")
 public class PinServerInternalFileIntegrationTest {
 
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)

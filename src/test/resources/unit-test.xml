@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="unit-test" verbose="1">
+<suite name="unit" verbose="1">
   <test name="all-unit-tests">
     <groups>
       <run>

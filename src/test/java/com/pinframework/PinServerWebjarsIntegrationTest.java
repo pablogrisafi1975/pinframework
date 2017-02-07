@@ -1,7 +1,7 @@
 package com.pinframework;
 
 
-import static com.pinframework.PinServerSetupIntegrationTest.BASE_URL;
+import static com.pinframework.IntegrationSuiteListener.BASE_URL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -13,9 +13,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-
+@Listeners(IntegrationSuiteListener.class)
 @Test(groups = "integration", suiteName = "integration")
 public class PinServerWebjarsIntegrationTest {
 
