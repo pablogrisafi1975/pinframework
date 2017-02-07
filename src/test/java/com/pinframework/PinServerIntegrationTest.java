@@ -1,6 +1,8 @@
 package com.pinframework;
 
 
+import static com.pinframework.PinServerSetupIntegrationTest.BASE_URL;
+import static com.pinframework.PinServerSetupIntegrationTest.PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -26,16 +28,15 @@ import org.testng.annotations.Test;
 @Test(groups = "integration", suiteName = "integration")
 public class PinServerIntegrationTest {
 
-  private static final int PORT = 7777;
-
+  private static final String APP_CONTEXT =
+      PinServerSetupIntegrationTest.APP_CONTEXT.replaceAll("/", "");
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)
       .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
 
 
   @Test
   public void textNoParamsFound() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/text-no-params").build();
+    Request request = new Request.Builder().url(BASE_URL + "text-no-params").build();
 
     Response response = client.newCall(request).execute();
 
@@ -48,8 +49,7 @@ public class PinServerIntegrationTest {
 
   @Test
   public void textNoParamsNotFound() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/text-no-params-non-existent").build();
+    Request request = new Request.Builder().url(BASE_URL + "text-no-params-non-existent").build();
 
     Response response = client.newCall(request).execute();
 
@@ -64,7 +64,7 @@ public class PinServerIntegrationTest {
   @Test
   public void acceptDependingText() throws IOException {
     Request request = new Request.Builder().header("Accept", "text/plain")
-        .url("http://localhost:" + PORT + "/integration-test/accept-depending").build();
+        .url(BASE_URL + "accept-depending").build();
 
     Response response = client.newCall(request).execute();
 
@@ -78,7 +78,7 @@ public class PinServerIntegrationTest {
   @Test
   public void acceptDependingJson() throws IOException {
     Request request = new Request.Builder().header("Accept", "application/json")
-        .url("http://localhost:" + PORT + "/integration-test/accept-depending").build();
+        .url(BASE_URL + "accept-depending").build();
 
     Response response = client.newCall(request).execute();
 
@@ -92,7 +92,7 @@ public class PinServerIntegrationTest {
   @Test
   public void textNoParamsNotFoundAcceptJson() throws IOException {
     Request request = new Request.Builder().header("Accept", "application/json")
-        .url("http://localhost:" + PORT + "/integration-test/text-no-params-non-existent").build();
+        .url(BASE_URL + "text-no-params-non-existent").build();
 
     Response response = client.newCall(request).execute();
 
@@ -106,8 +106,8 @@ public class PinServerIntegrationTest {
 
   @Test
   public void textPathParamsFound() throws IOException {
-    Request request = new Request.Builder().url("http://localhost:" + PORT
-        + "/integration-test/text-path-params/first-value/separator/second-value").build();
+    Request request = new Request.Builder()
+        .url(BASE_URL + "text-path-params/first-value/separator/second-value").build();
 
     Response response = client.newCall(request).execute();
 
@@ -121,9 +121,8 @@ public class PinServerIntegrationTest {
 
   @Test
   public void textPathParamsFoundCharset() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/text-path-params/áéíóú/separator/ññññ")
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + "text-path-params/áéíóú/separator/ññññ").build();
 
     Response response = client.newCall(request).execute();
 
@@ -137,7 +136,7 @@ public class PinServerIntegrationTest {
   @Test
   public void textQueryParamsFound() throws IOException {
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment("integration-test").addPathSegment("text-query-params")
+        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", "first-value")
         .addQueryParameter("second-key", "second-value-0")
         .addQueryParameter("second-key", "second-value-1").build();
@@ -157,7 +156,7 @@ public class PinServerIntegrationTest {
   public void textQueryParamsFoundCharsetSpaces() throws IOException {
     //@formatter:off
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment("integration-test").addPathSegment("text-query-params")
+        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", "ááá ééé")
         .addQueryParameter("second-key", "#lalala")
         .addQueryParameter("second-key", "&a=3&")
@@ -179,7 +178,7 @@ public class PinServerIntegrationTest {
   public void textQueryParamsFoundCharsetEmpty() throws IOException {
     //@formatter:off
     HttpUrl url = new HttpUrl.Builder().scheme("http").host("localhost").port(PORT)
-        .addPathSegment("integration-test").addPathSegment("text-query-params")
+        .addPathSegment(APP_CONTEXT).addPathSegment("text-query-params")
         .addQueryParameter("first-key", null)
         .addQueryParameter("second-key", "#lalala")
         .addQueryParameter("second-key", null)
@@ -208,8 +207,7 @@ public class PinServerIntegrationTest {
     //@formatter:on
 
     Request request =
-        new Request.Builder().url("http://localhost:" + PORT + "/integration-test/text-body-params")
-            .post(formBody).build();
+        new Request.Builder().url(BASE_URL + "text-body-params").post(formBody).build();
 
     Response response = client.newCall(request).execute();
 
@@ -231,8 +229,7 @@ public class PinServerIntegrationTest {
     String json = new Gson().toJson(map);
     RequestBody jsonBody = RequestBody.create(jsonMediaType, json);
     Request request =
-        new Request.Builder().url("http://localhost:" + PORT + "/integration-test/text-body-params")
-            .post(jsonBody).build();
+        new Request.Builder().url(BASE_URL + "text-body-params").post(jsonBody).build();
 
     Response response = client.newCall(request).execute();
 
@@ -256,8 +253,7 @@ public class PinServerIntegrationTest {
     //@formatter:on
 
     Request request =
-        new Request.Builder().url("http://localhost:" + PORT + "/integration-test/text-file-params")
-            .post(formBody).build();
+        new Request.Builder().url(BASE_URL + "text-file-params").post(formBody).build();
 
     Response response = client.newCall(request).execute();
     assertEquals(response.code(), 200);
@@ -272,74 +268,8 @@ public class PinServerIntegrationTest {
 
 
   @Test
-  public void internalTextFileFound() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/internal-txt-file.txt").build();
-
-    Response response = client.newCall(request).execute();
-
-    assertEquals(response.code(), 200);
-    assertEquals(response.body().contentType().type(), "text");
-    assertEquals(response.body().contentType().subtype(), "plain");
-    assertEquals(response.body().string(), "internal-txt-file-content");
-  }
-
-  @Test
-  public void internalHtmlFileFound() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/internal-html-file.html").build();
-
-    Response response = client.newCall(request).execute();
-
-    assertEquals(response.code(), 200);
-    assertEquals(response.body().contentType().type(), "text");
-    assertEquals(response.body().contentType().subtype(), "html");
-    assertEquals(response.body().string(), "<html><body>internal-html-file-content</body></html>");
-  }
-
-  @Test
-  public void internalIndexHtmlFileFound() throws IOException {
-    Request request =
-        new Request.Builder().url("http://localhost:" + PORT + "/integration-test/").build();
-
-    Response response = client.newCall(request).execute();
-
-    assertEquals(response.code(), 200);
-    assertEquals(response.body().contentType().type(), "text");
-    assertEquals(response.body().contentType().subtype(), "html");
-    assertEquals(response.body().string(), "<html><body>index-html-file-content</body></html>");
-  }
-
-  @Test
-  public void internalIndexHtmlFileFoundAgain() throws IOException {
-    Request request =
-        new Request.Builder().url("http://localhost:" + PORT + "/integration-test").build();
-
-    Response response = client.newCall(request).execute();
-
-    assertEquals(response.code(), 200);
-    assertEquals(response.body().contentType().type(), "text");
-    assertEquals(response.body().contentType().subtype(), "html");
-    assertEquals(response.body().string(), "<html><body>index-html-file-content</body></html>");
-  }
-
-  @Test
-  public void tryToTraversalTree() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/../../../").build();
-
-    Response response = client.newCall(request).execute();
-
-    assertEquals(response.code(), 404);
-    assertEquals(response.body().contentType().type(), "text");
-    assertEquals(response.body().contentType().subtype(), "html");
-    assertEquals(response.body().string(), "<h1>404 Not Found</h1>No context found for request");
-  }
-
-  @Test
   public void downloadFile() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/file-to-download").build();
+    Request request = new Request.Builder().url(BASE_URL + "file-to-download").build();
 
     Response response = client.newCall(request).execute();
 

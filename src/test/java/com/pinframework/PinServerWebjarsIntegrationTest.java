@@ -1,6 +1,7 @@
 package com.pinframework;
 
 
+import static com.pinframework.PinServerSetupIntegrationTest.BASE_URL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -18,16 +19,13 @@ import org.testng.annotations.Test;
 @Test(groups = "integration", suiteName = "integration")
 public class PinServerWebjarsIntegrationTest {
 
-  private static final int PORT = 7777;
-
   private final OkHttpClient client = new OkHttpClient.Builder().readTimeout(60, TimeUnit.MINUTES)
       .connectTimeout(5, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
 
   @Test
   public void webjarsFound() throws IOException {
-    Request request = new Request.Builder().url(
-        "http://localhost:" + PORT + "/integration-test/webjars/normalize.css/3.0.2/normalize.css")
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + "webjars/normalize.css/3.0.2/normalize.css").build();
 
     Response response = client.newCall(request).execute();
 
@@ -41,10 +39,8 @@ public class PinServerWebjarsIntegrationTest {
   @Test
   public void webjarsPost() throws IOException {
     Request request = new Request.Builder()
-        .url("http://localhost:" + PORT
-            + "/integration-test/webjars/normalize.css/3.0.2/normalize.css")
-        .post(RequestBody.create(MediaType.parse("text/plain"),
-            "new content".getBytes(StandardCharsets.UTF_8)))
+        .url(BASE_URL + "webjars/normalize.css/3.0.2/normalize.css").post(RequestBody
+            .create(MediaType.parse("text/plain"), "new content".getBytes(StandardCharsets.UTF_8)))
         .build();
 
     Response response = client.newCall(request).execute();
@@ -59,9 +55,8 @@ public class PinServerWebjarsIntegrationTest {
 
   @Test
   public void webjarsMinifiedFound() throws IOException {
-    Request request = new Request.Builder()
-        .url("http://localhost:" + PORT + "/integration-test/webjars/animate.css/3.5.2/animate.css")
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + "webjars/animate.css/3.5.2/animate.css").build();
 
     Response response = client.newCall(request).execute();
 
@@ -74,9 +69,8 @@ public class PinServerWebjarsIntegrationTest {
 
   @Test
   public void webjarsAskForAlreadyMinifiedFound() throws IOException {
-    Request request = new Request.Builder().url(
-        "http://localhost:" + PORT + "/integration-test/webjars/animate.css/3.5.2/animate.min.css")
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + "webjars/animate.css/3.5.2/animate.min.css").build();
 
     Response response = client.newCall(request).execute();
 
@@ -89,8 +83,8 @@ public class PinServerWebjarsIntegrationTest {
 
   @Test
   public void webjarsNotFound() throws IOException {
-    Request request = new Request.Builder().url("http://localhost:" + PORT
-        + "/integration-test/webjars/normalize.css/3.0.2/normalize-wrong.css").build();
+    Request request = new Request.Builder()
+        .url(BASE_URL + "webjars/normalize.css/3.0.2/normalize-wrong.css").build();
 
     Response response = client.newCall(request).execute();
 

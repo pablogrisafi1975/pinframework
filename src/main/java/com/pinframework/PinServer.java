@@ -40,15 +40,18 @@ public class PinServer {
     this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical,
         gsonParser, uploadSupportEnabled);
     httpServer.createContext(appContext, redirectHttpHandler);
-    // this second context is needed just to handle /app-context (without the last /)
-    httpServer.createContext(appContext.substring(0, appContext.length() - 1), new HttpHandler() {
-      @Override
-      public void handle(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().add(PinHeader.LOCATION, appContext);
-        exchange.sendResponseHeaders(HttpURLConnection.HTTP_MOVED_PERM, 0);
-        exchange.close();
-      }
-    });
+    // sadly, it does not work as localhost:8080
+    if (appContext.length() > 1) {
+      // this second context is needed just to handle /app-context (without the last /)
+      httpServer.createContext(appContext.substring(0, appContext.length() - 1), new HttpHandler() {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+          exchange.getResponseHeaders().add(PinHeader.LOCATION, appContext);
+          exchange.sendResponseHeaders(HttpURLConnection.HTTP_MOVED_PERM, 0);
+          exchange.close();
+        }
+      });
+    }
     if (webjarsSupportEnabled) {
       httpServer.createContext(this.appContext + "webjars",
           new PinWebjarsHttpHandler(webjarsAutoMinimize));

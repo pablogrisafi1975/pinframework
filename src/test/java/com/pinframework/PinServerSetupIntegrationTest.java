@@ -26,7 +26,13 @@ import org.testng.annotations.Test;
 @Test(groups = "integration", suiteName = "integration")
 public class PinServerSetupIntegrationTest {
 
-  private static final int PORT = 7777;
+  public static final int PORT = 7777;
+  public static final String APP_CONTEXT = "/integration-test/";
+
+  /**
+   * Includes the last /, something like http://localhost:7777/integration-test/ .
+   */
+  public static final String BASE_URL = "http://localhost:" + PORT + APP_CONTEXT;
 
   private PinServer pinServer;
 
@@ -142,10 +148,8 @@ public class PinServerSetupIntegrationTest {
 
   @Test
   public void externalTextFileFound() throws IOException {
-    Request request = new Request.Builder()
-        .url(
-            "http://localhost:" + PORT + "/integration-test/" + externalTextFile.toFile().getName())
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + externalTextFile.toFile().getName()).build();
 
     Response response = client.newCall(request).execute();
 
@@ -157,9 +161,7 @@ public class PinServerSetupIntegrationTest {
 
   @Test
   public void externalPostFile() throws IOException {
-    Request request = new Request.Builder()
-        .url(
-            "http://localhost:" + PORT + "/integration-test/" + externalTextFile.toFile().getName())
+    Request request = new Request.Builder().url(BASE_URL + externalTextFile.toFile().getName())
         .post(RequestBody.create(MediaType.parse("text/plain"), "content")).build();
 
     Response response = client.newCall(request).execute();
@@ -173,10 +175,8 @@ public class PinServerSetupIntegrationTest {
 
   @Test
   public void externalHtmlFileFound() throws IOException {
-    Request request = new Request.Builder()
-        .url(
-            "http://localhost:" + PORT + "/integration-test/" + externalHtmlFile.toFile().getName())
-        .build();
+    Request request =
+        new Request.Builder().url(BASE_URL + externalHtmlFile.toFile().getName()).build();
 
     Response response = client.newCall(request).execute();
 
