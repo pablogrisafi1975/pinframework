@@ -1,11 +1,16 @@
 package com.pinframework;
 
 import com.google.gson.Gson;
+import com.pinframework.constant.PinHeader;
 import com.pinframework.httphandler.PinRedirectHttpHandler;
 import com.pinframework.httphandler.PinWebjarsHttpHandler;
 import com.pinframework.requestmatcher.PinRouteRequestMatcher;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +40,15 @@ public class PinServer {
     this.redirectHttpHandler = new PinRedirectHttpHandler(appContext, externalFolderCanonical,
         gsonParser, uploadSupportEnabled);
     httpServer.createContext(appContext, redirectHttpHandler);
+    // this second context is needed just to handle /app-context (without the last /)
+    httpServer.createContext(appContext.substring(0, appContext.length() - 1), new HttpHandler() {
+      @Override
+      public void handle(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add(PinHeader.LOCATION, appContext);
+        exchange.sendResponseHeaders(HttpURLConnection.HTTP_MOVED_PERM, 0);
+        exchange.close();
+      }
+    });
     if (webjarsSupportEnabled) {
       httpServer.createContext(this.appContext + "webjars",
           new PinWebjarsHttpHandler(webjarsAutoMinimize));

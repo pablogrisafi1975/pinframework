@@ -23,7 +23,7 @@ import okhttp3.Response;
 import org.testng.annotations.Test;
 
 
-@Test(groups = "integration")
+@Test(groups = "integration", suiteName = "integration")
 public class PinServerIntegrationTest {
 
   private static final int PORT = 7777;
@@ -295,6 +295,32 @@ public class PinServerIntegrationTest {
     assertEquals(response.body().contentType().type(), "text");
     assertEquals(response.body().contentType().subtype(), "html");
     assertEquals(response.body().string(), "<html><body>internal-html-file-content</body></html>");
+  }
+
+  @Test
+  public void internalIndexHtmlFileFound() throws IOException {
+    Request request =
+        new Request.Builder().url("http://localhost:" + PORT + "/integration-test/").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "html");
+    assertEquals(response.body().string(), "<html><body>index-html-file-content</body></html>");
+  }
+
+  @Test
+  public void internalIndexHtmlFileFoundAgain() throws IOException {
+    Request request =
+        new Request.Builder().url("http://localhost:" + PORT + "/integration-test").build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "html");
+    assertEquals(response.body().string(), "<html><body>index-html-file-content</body></html>");
   }
 
   @Test

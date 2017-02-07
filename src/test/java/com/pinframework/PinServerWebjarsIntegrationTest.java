@@ -15,7 +15,7 @@ import okhttp3.Response;
 import org.testng.annotations.Test;
 
 
-@Test(groups = "integration")
+@Test(groups = "integration", suiteName = "integration")
 public class PinServerWebjarsIntegrationTest {
 
   private static final int PORT = 7777;
@@ -61,6 +61,21 @@ public class PinServerWebjarsIntegrationTest {
   public void webjarsMinifiedFound() throws IOException {
     Request request = new Request.Builder()
         .url("http://localhost:" + PORT + "/integration-test/webjars/animate.css/3.5.2/animate.css")
+        .build();
+
+    Response response = client.newCall(request).execute();
+
+    assertEquals(response.code(), 200);
+    assertEquals(response.body().contentType().type(), "text");
+    assertEquals(response.body().contentType().subtype(), "css");
+    assertTrue(response.body().string()
+        .contains(".animated{-webkit-animation-duration:1s;animation-duration:1s;"));
+  }
+
+  @Test
+  public void webjarsAskForAlreadyMinifiedFound() throws IOException {
+    Request request = new Request.Builder().url(
+        "http://localhost:" + PORT + "/integration-test/webjars/animate.css/3.5.2/animate.min.css")
         .build();
 
     Response response = client.newCall(request).execute();

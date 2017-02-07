@@ -23,7 +23,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 
-@Test(groups = "integration")
+@Test(groups = "integration", suiteName = "integration")
 public class PinServerSetupIntegrationTest {
 
   private static final int PORT = 7777;

@@ -17,7 +17,6 @@ public final class PinResponses {
 
   private static final PinRenderJson PIN_RENDER_JSON = new PinRenderJson();
 
-  // TODO: implementar las responses basicas aca mismo
   private PinResponses() {
     // do nothing, shut up sonar
   }

@@ -34,6 +34,11 @@ public final class PinHeader {
    */
   public static final String ACCEPT = "Accept";
 
+  /**
+   * Location .
+   */
+  public static final String LOCATION = "Location";
+
 
 
   private PinHeader() {
