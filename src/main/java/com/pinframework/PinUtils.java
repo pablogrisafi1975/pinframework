@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -44,9 +45,9 @@ public class PinUtils {
 	/**
 	 * to fully read something an throw it away
 	 */
-	private static final OutputStream NULL_OUPUT_STREAM = new OutputStream() {
+	private static final OutputStream NULL_OUTPUT_STREAM = new OutputStream() {
 		@Override
-		public void write(int b) throws IOException {
+		public void write(int b) {
 			// just to clean things
 		}
 	};
@@ -67,7 +68,7 @@ public class PinUtils {
 	}
 
 	public static void fullyRead(InputStream in) throws IOException {
-		copy(in, NULL_OUPUT_STREAM);
+		copy(in, NULL_OUTPUT_STREAM);
 	}
 
 	public static void copy(InputStream in, OutputStream out) throws IOException {
@@ -157,22 +158,17 @@ public class PinUtils {
 	 * UTF-8 should be used. Not doing so may introduce
 	 * incompatibilities.</em>
 	 *
-	 * @param s
+	 * @param string
 	 *            {@code String} to be translated.
 	 * @return the translated {@code String}.
 	 * @exception PinUnsupportedEncodingRuntimeException
 	 *                If the named encoding is not supported. Should never
 	 *                happen.
-	 * @see URLDecoder#encode(java.lang.String, java.lang.String)
+	 * @see URLEncoder#encode(java.lang.String, java.lang.String)
 	 * @since 1.4
 	 */
 	public static String urlEncode(String string) {
-		try {
-			return URLEncoder.encode(string, UTF_8);
-		} catch (UnsupportedEncodingException e) {
-			LOG.error("Can not encode '{}'", string, e);
-			throw new PinUnsupportedEncodingRuntimeException(e);
-		}
+		return URLEncoder.encode(string, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -187,21 +183,16 @@ public class PinUtils {
 	 * UTF-8 should be used. Not doing so may introduce
 	 * incompatibilities.</em>
 	 *
-	 * @param s
+	 * @param string
 	 *            the {@code String} to decode
 	 * @return the newly decoded {@code String}
 	 * @exception PinUnsupportedEncodingRuntimeException
 	 *                If character encoding needs to be consulted, but named
 	 *                character encoding is not supported. Should never happen.
-	 * @see URLEncoder#decode(java.lang.String, java.lang.String)
+	 * @see URLDecoder#decode(java.lang.String, java.lang.String)
 	 */
 	public static String urlDecode(String string) {
-		try {
-			return URLDecoder.decode(string, UTF_8);
-		} catch (UnsupportedEncodingException e) {
-			LOG.error("Can not decode '{}'", string, e);
-			throw new PinUnsupportedEncodingRuntimeException(e);
-		}
+		return URLDecoder.decode(string, StandardCharsets.UTF_8);
 	}
 
 }

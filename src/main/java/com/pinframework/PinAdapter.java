@@ -14,7 +14,6 @@ import com.pinframework.exceptions.PinInitializationException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-@SuppressWarnings("restriction")
 public class PinAdapter implements HttpHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(PinAdapter.class);
 

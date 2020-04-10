@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset comparisonMethod="maven"
+         xmlns="http://mojo.codehaus.org/versions-maven-plugin/rule/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://mojo.codehaus.org/versions-maven-plugin/rule/2.0.0
+  http://mojo.codehaus.org/versions-maven-plugin/xsd/rule-2.0.0.xsd">
+    <ignoreVersions>
+        <!-- Ignore Alpha's, Beta's, release candidates and milestones [(?i) es case insensitive]-->
+        <ignoreVersion type="regex" >(?i).*alpha.*</ignoreVersion>
+        <ignoreVersion type="regex">(?i).*beta.*</ignoreVersion>
+        <ignoreVersion type="regex">(?i).*does-not-exist.*</ignoreVersion>
+    </ignoreVersions>
+    <rules>
+
+        <!-- avoid versions like 3.8.1-jboss-1 for maven-compiler-plugin-->
+        <rule groupId="org.apache.maven.plugins" artifactId="maven-compiler-plugin" >
+            <ignoreVersions>
+                <ignoreVersion type="regex">^.*jboss.*$</ignoreVersion>
+            </ignoreVersions>
+        </rule>
+
+        <!-- avoid versions like  3.0.0-M4 for every maven plugin-->
+        <rule groupId="org.apache.maven.plugins" artifactId="*" >
+            <ignoreVersions>
+                <ignoreVersion type="regex">^.*-M.</ignoreVersion>
+            </ignoreVersions>
+        </rule>
+
+    </rules>
+</ruleset>
