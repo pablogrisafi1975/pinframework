@@ -4,15 +4,16 @@
 * No reflection used
 * Functionality
   * get/post/put/patch/delete verbs
+  * path params
   * read and write json
+  * read upload form
   * upload and download files
   * generate txt
   * download static content
-  * path params
   
 * All class names start with Pin
 * All exceptions are runtime and extend from PinRuntimeException
 * Any initialization problem and you get a PinInitializationException
 * No serialVersionUID in any place
-
+* By default json output is assumed
 

@@ -38,6 +38,8 @@
 
         <!-- test libraries dependency versions -->
         <testng.version>7.1.0</testng.version>
+        <okhttp.version>4.2.2</okhttp.version>
+        <logback.version>1.2.3</logback.version>
     </properties>
 
     <dependencies>
@@ -63,6 +65,12 @@
         </dependency>
 
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
@@ -78,6 +86,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 

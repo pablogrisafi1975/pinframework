@@ -140,7 +140,7 @@ public class PinServer {
 
     public PinServer stop(int seconds) {
         String protocol = httpServer.getClass().getSimpleName().equals("HttpsServerImpl") ? "https" : " http";
-        LOG.debug("Stopping https://localhost:{}{} in about {} seconds", protocol, port, appContext, seconds);
+        LOG.debug("Stopping {}://localhost:{}{} in about {} seconds", protocol, port, appContext, seconds);
         httpServer.stop(seconds);
         LOG.info("Stopped {}://localhost:{}{}", protocol, port, appContext);
         return this;

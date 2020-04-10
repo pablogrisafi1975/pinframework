@@ -44,7 +44,7 @@ public class PinUtils {
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class,
                     (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) -> new JsonPrimitive(
-                            src.format(DateTimeFormatter.ISO_DATE_TIME))).create();
+                            src.format(DateTimeFormatter.ISO_DATE_TIME))).disableHtmlEscaping().create();
 
     public static void fullyRead(InputStream in) throws IOException {
         copy(in, NULL_OUTPUT_STREAM);
@@ -81,7 +81,7 @@ public class PinUtils {
      * admin/user/:userId<br>
      * admin/office/:officeId/:userId<br>
      * so <br>
-     * dont start or finish with / <br>
+     * don't start or finish with / <br>
      * path parameters should be :name <br>
      * once you put a path parameter, everything else should be a path
      * parameters<br>
