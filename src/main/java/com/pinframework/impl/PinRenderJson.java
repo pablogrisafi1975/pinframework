@@ -12,29 +12,28 @@ import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
 
 public class PinRenderJson implements PinRender {
-	
-	public static final PinRenderJson INSTANCE = new PinRenderJson();
 
-	
-	public String render(Object model) {
-		return PinUtils.GSON.toJson(model);
-	}
+    public static final PinRenderJson INSTANCE = new PinRenderJson();
 
-	public void render(Object model, Appendable writter) {
-		PinUtils.GSON.toJson(model, writter);
-	}
+    public String render(Object model) {
+        return PinUtils.GSON.toJson(model);
+    }
 
-	@Override
-	public void render(Object obj, OutputStream outputStream) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-		PinUtils.GSON.toJson(obj, writer);
-		writer.flush();
-		writer.close();
-	}
-	
-	@Override
-	public void changeHeaders(Map<String, List<String>> responseHeaders) {
-		PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, PinMimeType.APPLICATION_JSON_UTF8);
-	}
+    public void render(Object model, Appendable writer) {
+        PinUtils.GSON.toJson(model, writer);
+    }
+
+    @Override
+    public void render(Object obj, OutputStream outputStream) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+        PinUtils.GSON.toJson(obj, writer);
+        writer.flush();
+        writer.close();
+    }
+
+    @Override
+    public void changeHeaders(Map<String, List<String>> responseHeaders) {
+        PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, PinMimeType.APPLICATION_JSON_UTF8);
+    }
 
 }

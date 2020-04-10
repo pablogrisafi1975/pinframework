@@ -7,12 +7,12 @@ import com.pinframework.impl.PinRenderJson;
 
 public class PinResponseNotFoundJson extends PinResponse {
 
-	private PinResponseNotFoundJson(Object obj) {
-		super(HttpURLConnection.HTTP_NOT_FOUND, obj, PinRenderJson.INSTANCE);
-	}
+    private PinResponseNotFoundJson(Object obj) {
+        super(HttpURLConnection.HTTP_NOT_FOUND, obj, PinRenderJson.INSTANCE);
+    }
 
-	public static PinResponseNotFoundJson of(Object obj) {
-		return new PinResponseNotFoundJson(obj);
-	}
+    public static PinResponseNotFoundJson of(Object obj) {
+        return new PinResponseNotFoundJson(obj);
+    }
 
 }

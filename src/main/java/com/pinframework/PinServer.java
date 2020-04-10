@@ -38,9 +38,7 @@ public class PinServer {
         this.appContext = appContext;
         this.port = httpServer.getAddress().getPort();
         if (webjarsSupportEnabled) {
-            httpServer.createContext(this.appContext + "webjars", (ex -> {
-                resourceFolder(ex, "META-INF/resources/webjars", null);
-            }));
+            httpServer.createContext(this.appContext + "webjars", (ex -> resourceFolder(ex, "META-INF/resources/webjars", null)));
         }
         httpServer.createContext(this.appContext, (ex -> {
             // File externalPath = new
@@ -90,7 +88,7 @@ public class PinServer {
             return;
         }
         String filename = ex.getRequestURI().getPath().replaceFirst("\\Q" + ex.getHttpContext().getPath() + "\\E", "");
-        if (filename == null || filename.trim().length() == 0) {
+        if (filename.trim().length() == 0) {
             filename = "index.html";
         }
 
@@ -134,16 +132,17 @@ public class PinServer {
 
     public PinServer start() {
         String protocol = httpServer.getClass().getSimpleName().equals("HttpsServerImpl") ? "https" : " http";
-        LOG.debug("Starting as " + protocol + "://localhost:" + port + appContext);
+        LOG.debug("Starting as {}://localhost:{}{}", protocol, port, appContext);
         httpServer.start();
-        LOG.info("Started as  " + protocol + "://localhost:" + port + appContext);
+        LOG.info("Started as {}://localhost:{}{}", protocol, port, appContext);
         return this;
     }
 
     public PinServer stop(int seconds) {
-        LOG.debug("Stopping https://localhost:" + port + appContext + " in about " + seconds + " seconds");
+        String protocol = httpServer.getClass().getSimpleName().equals("HttpsServerImpl") ? "https" : " http";
+        LOG.debug("Stopping https://localhost:{}{} in about {} seconds", protocol, port, appContext, seconds);
         httpServer.stop(seconds);
-        LOG.info("Stopped https://localhost:" + port + appContext);
+        LOG.info("Stopped {}://localhost:{}{}", protocol, port, appContext);
         return this;
     }
 
