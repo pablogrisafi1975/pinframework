@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pinframework.exceptions.PinInitializationException;
+import com.pinframework.impl.PinRenderJson;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 
@@ -29,6 +30,7 @@ public class PinServerBuilder {
     private String externalFolder = null;
     private Executor executor = Executors.newFixedThreadPool(10);
     private boolean httpsSupportEnabled = false;
+    private PinRender defaultRender = null; //if not set will be initialized before invoking the PinServer constructor
     // TODO: incluir un authenticator
 
     /**
@@ -147,6 +149,18 @@ public class PinServerBuilder {
         return this;
     }
 
+    /**
+     * The render that will be used if none is specified. <br>
+     * Default an instance of PinRenderJson
+     *
+     * @param defaultRender
+     * @return this instance so you can keep building
+     */
+    public PinServerBuilder defaultRender(PinRender defaultRender) {
+        this.defaultRender = defaultRender;
+        return this;
+    }
+
     public PinServer build() {
         this.appContext = appContext == null || appContext.trim().length() == 0 ? "/"
                 : "/" + appContext.replaceAll("/", "") + "/";
@@ -195,7 +209,11 @@ public class PinServerBuilder {
         }
         httpServer.setExecutor(executor);
 
-        return new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical);
+        if(defaultRender == null){
+            defaultRender = new PinRenderJson();
+        }
+
+        return new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical, defaultRender);
     }
 
 }

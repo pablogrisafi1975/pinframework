@@ -28,11 +28,13 @@ public class PinServer {
     private final Map<String, PinAdapter> adaptersByPath = new HashMap<>();
     private final int port;
     private final boolean restrictedCharset;
+    private final Map<String, PinRender> rendersByContentTypeParsed = new HashMap<>();
+    private final PinRender defaultRender;
 
     //TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
 
     PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
-            File externalFolderCanonical) {
+            File externalFolderCanonical, PinRender defaultRender) {
         this.httpServer = httpServer;
         this.restrictedCharset = restrictedCharset;
         this.appContext = appContext;
@@ -45,6 +47,7 @@ public class PinServer {
             // File("/home/pablogrisafi/workspaces/op-txfinder/op-txfinder-pin/external");
             resourceFolder(ex, "static/", externalFolderCanonical);
         }));
+        this.defaultRender = defaultRender;
 
     }
 
@@ -56,7 +59,7 @@ public class PinServer {
         if (pinAdapter != null) {
             pinAdapter.put(method, pathParameterNames, pinHandler);
         } else {
-            pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler);
+            pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler, this);
             httpServer.createContext(contextPath, pinAdapter);
             adaptersByPath.put(contextPath, pinAdapter);
         }
@@ -154,4 +157,16 @@ public class PinServer {
         return httpServer;
     }
 
+    public PinRender findRender(String contentTypeParsed) {
+        if (contentTypeParsed == null) {
+            return defaultRender;
+        }
+
+        if (rendersByContentTypeParsed.containsKey(contentTypeParsed)) {
+            return rendersByContentTypeParsed.get(contentTypeParsed);
+        }
+
+        return defaultRender;
+
+    }
 }

@@ -2,7 +2,6 @@ package com.pinframework;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +18,12 @@ public class PinAdapter implements HttpHandler {
 
     private final Map<String, PinHandler> handlerByMethod = new HashMap<>();
     private final Map<String, List<String>> parameterNamesByMethod = new HashMap<>();
+    private final PinServer pinServer;
 
-    public PinAdapter(String method, List<String> pathParameterNames, PinHandler pinHandler) {
+    public PinAdapter(String method, List<String> pathParameterNames, PinHandler pinHandler, PinServer pinServer) {
         handlerByMethod.put(method, pinHandler);
         parameterNamesByMethod.put(method, pathParameterNames);
+        this.pinServer = pinServer;
     }
 
     public void put(String method, List<String> pathParameterNames, PinHandler pinHandler) {
@@ -48,19 +49,23 @@ public class PinAdapter implements HttpHandler {
         boolean keepResponseOpen = false;
         try {
             PinResponse pinResponse = pinHandler.handle(pinExchange);
-            PinRender pinTransformer = pinResponse.getRender();
-            pinTransformer.changeHeaders(httpExchange.getResponseHeaders());
+            PinRender pinRender = pinResponse.getRender();
+            pinRender.changeHeaders(httpExchange.getResponseHeaders());
             keepResponseOpen = pinResponse.keepResponseOpen();
             if (!keepResponseOpen) {
                 httpExchange.sendResponseHeaders(pinResponse.getStatus(), 0);
             }
-            pinTransformer.render(pinResponse.getObj(), httpExchange.getResponseBody());
+            pinRender.render(pinResponse.getObj(), httpExchange.getResponseBody());
         } catch (Exception ex) {
-            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
-            // TODO: log y crear un exception transformer que pueda mostra la
-            // excepcion como json, texto o nada
-            httpExchange.getResponseBody()
-                    .write(("UnexpectedException " + ex.toString()).getBytes(StandardCharsets.UTF_8));
+            LOG.error("Unexpected exception, will return INTERNAL_SERVER_ERROR=500", ex);
+            PinRender pinRender = pinServer.findRender(pinExchange.getRequestContentTypeParsed());
+            try {
+                pinRender.changeHeaders(httpExchange.getResponseHeaders());
+                httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
+                pinRender.render(ex, httpExchange.getResponseBody());
+            } catch (Exception ex2) {
+                LOG.error("More unexpected exception,Can not even write the error response about an internal error!", ex2);
+            }
         } finally {
             if (!keepResponseOpen) {
                 httpExchange.close();

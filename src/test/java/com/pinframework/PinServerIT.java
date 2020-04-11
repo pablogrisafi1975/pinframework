@@ -8,7 +8,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.pinframework.impl.PinRenderJson;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -31,14 +30,14 @@ public class PinServerIT {
             Long id;
             try {
                 id = Long.parseLong(ex.getPathParams().get("id"));
-            }catch (Exception e){
-                return new PinResponse(HttpURLConnection.HTTP_BAD_REQUEST, e, PinRenderJson.INSTANCE );
+            } catch (Exception e) {
+                return new PinResponse(HttpURLConnection.HTTP_BAD_REQUEST, e, pinServer.findRender(ex.getRequestContentTypeParsed()));
             }
 
             UserDTO userDTO = userService.get(id);
-            if(userDTO != null){
+            if (userDTO != null) {
                 return PinResponse.okJson(userDTO);
-            }else{
+            } else {
                 return PinResponse.notFoundJson(null);
             }
         });
@@ -106,7 +105,8 @@ public class PinServerIT {
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
             Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
-            Assert.assertEquals(response.body().string(), "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
+            Assert.assertEquals(response.body().string(),
+                    "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
         }
     }
 
@@ -119,10 +119,10 @@ public class PinServerIT {
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
             Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
-            Assert.assertEquals(response.body().string(), "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
+            Assert.assertEquals(response.body().string(),
+                    "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
         }
     }
-
 
     @AfterClass
     public void tearDown() {

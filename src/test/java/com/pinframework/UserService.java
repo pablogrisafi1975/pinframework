@@ -17,7 +17,7 @@ public class UserService {
      */
     public UserDTO get(Long id) {
         if (id < 0) {
-            throw new NullPointerException();
+            throw new NullPointerException("Fake internal error");
         }
         return USER_MAP.get(id);
     }
