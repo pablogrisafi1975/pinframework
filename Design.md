@@ -15,5 +15,5 @@
 * All exceptions are runtime and extend from PinRuntimeException
 * Any initialization problem and you get a PinInitializationException
 * No serialVersionUID in any place
-* By default json output is assumed
+* By default json output is assumed with status = 200, if object is null or optional.empty status = 404
 

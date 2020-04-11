@@ -56,7 +56,7 @@ public class PinAdapter implements HttpHandler {
             }
             pinTransformer.render(pinResponse.getObj(), httpExchange.getResponseBody());
         } catch (Exception ex) {
-            httpExchange.sendResponseHeaders(503, 0);
+            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
             // TODO: log y crear un exception transformer que pueda mostra la
             // excepcion como json, texto o nada
             httpExchange.getResponseBody()

@@ -63,6 +63,10 @@ public class PinServer {
         return this;
     }
 
+    public PinServer onGet(String path, PinResponse pinResponse) {
+        return on("GET", path, ex -> pinResponse);
+    }
+
     public PinServer onGet(String path, PinHandler pinHandler) {
         return on("GET", path, pinHandler);
     }

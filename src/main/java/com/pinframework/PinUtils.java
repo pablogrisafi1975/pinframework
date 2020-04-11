@@ -3,6 +3,7 @@ package com.pinframework;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 
@@ -38,13 +40,27 @@ public class PinUtils {
         }
     };
 
+    //TODO: inyectable por el builder
+    //TODO: manejar mas tipos de fecha, ida y vuelta
     /**
-     * JSON that serializes LocalDateTime as yyyy-MM-ddTHH:mm:ssZ
+     * GSON that
+     * serializes LocalDateTime as yyyy-MM-ddTHH:mm:ssZ
+     * serializes Exception as type and message
      */
+
     public static final Gson GSON = new GsonBuilder()
+            .disableHtmlEscaping()
             .registerTypeAdapter(LocalDateTime.class,
                     (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) -> new JsonPrimitive(
-                            src.format(DateTimeFormatter.ISO_DATE_TIME))).disableHtmlEscaping().create();
+                            src.format(DateTimeFormatter.ISO_DATE_TIME)))
+            .registerTypeHierarchyAdapter(Exception.class,
+                    (JsonSerializer<Exception>) (src, typeOfSrc, context) -> {
+                        var json = new JsonObject();
+                        json.addProperty("type", src.getClass().getName());
+                        json.addProperty("message", src.getMessage());
+                        return json;
+                    })
+            .create();
 
     public static void fullyRead(InputStream in) throws IOException {
         copy(in, NULL_OUTPUT_STREAM);
