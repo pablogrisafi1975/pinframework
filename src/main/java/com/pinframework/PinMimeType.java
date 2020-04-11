@@ -4,16 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PinMimeType {
-    //TODO: create class for headers constants
-    /**
-     * Content-Type
-     */
-    public static final String CONTENT_TYPE = "Content-Type";
 
-    /**
-     * application/json; charset=utf-8
-     */
-    public static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
 
     private static final Map<String, String> MAP = new HashMap<>();
 

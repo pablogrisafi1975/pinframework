@@ -52,8 +52,8 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), 200);
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
             Assert.assertEquals(response.body().string(), "this is the text");
-            Assert.assertEquals(response.header("Content-Type"), "text/plain; charset=utf-8");
         }
     }
 
@@ -65,7 +65,7 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header("Content-Type"), "text/plain; charset=utf-8");
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
             Assert.assertEquals(response.body().string(), "this is the constant text");
         }
     }
@@ -78,7 +78,7 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
+            Assert.assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
             Assert.assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
         }
     }
@@ -91,7 +91,7 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
-            Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
             Assert.assertEquals(response.body().string(), "null");
         }
     }
@@ -104,7 +104,7 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
-            Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
             Assert.assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
         }
@@ -118,7 +118,7 @@ public class PinServerIT {
 
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
-            Assert.assertEquals(response.header("Content-Type"), "application/json; charset=utf-8");
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
             Assert.assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
         }

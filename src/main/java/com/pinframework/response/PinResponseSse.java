@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinResponse;
@@ -19,7 +20,7 @@ public class PinResponseSse extends PinResponse {
     private PinResponseSse(PinExchange pinExchange) {
         super(HttpURLConnection.HTTP_OK, pinExchange, PinRenderNull.INSTANCE);
         HttpExchange httpExchange = pinExchange.raw();
-        httpExchange.getResponseHeaders().add(PinMimeType.CONTENT_TYPE, "text/event-stream");
+        httpExchange.getResponseHeaders().add(PinContentType.CONTENT_TYPE, "text/event-stream");
         httpExchange.getResponseHeaders().add("CharacterEncoding", "UTF-8");
         try {
             httpExchange.sendResponseHeaders(200, 0);

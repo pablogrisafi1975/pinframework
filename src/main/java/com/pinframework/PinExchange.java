@@ -145,7 +145,7 @@ public class PinExchange {
      * @return
      */
     public String getRequestContentType() {
-        return httpExchange.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+        return httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
     }
 
     /**

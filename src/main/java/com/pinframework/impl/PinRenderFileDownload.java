@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinUtils;
@@ -30,7 +31,7 @@ public class PinRenderFileDownload implements PinRender {
     public void changeHeaders(Map<String, List<String>> responseHeaders) {
         PinUtils.put(responseHeaders, "Content-Disposition",
                 "attachment; filename=\"" + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\";");
-        PinUtils.put(responseHeaders, PinMimeType.CONTENT_TYPE, "application/force-download");
+        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, "application/force-download");
 
     }
 

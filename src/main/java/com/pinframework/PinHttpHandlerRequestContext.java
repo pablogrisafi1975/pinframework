@@ -26,7 +26,7 @@ public class PinHttpHandlerRequestContext implements RequestContext {
 
     @Override
     public String getContentType() {
-        return http.getRequestHeaders().getFirst(PinMimeType.CONTENT_TYPE);
+        return http.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
     }
 
     @Override

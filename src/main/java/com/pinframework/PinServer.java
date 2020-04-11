@@ -108,7 +108,7 @@ public class PinServer {
                 LOG.error("File not found on request uri '{}'", ex.getRequestURI().getPath());
             } else {
                 String mimeType = PinMimeType.fromFileName(filename);
-                ex.getResponseHeaders().add(PinMimeType.CONTENT_TYPE, mimeType);
+                ex.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
                 ex.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
 
                 PinUtils.copy(is, ex.getResponseBody());
