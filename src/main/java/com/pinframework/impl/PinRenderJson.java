@@ -10,11 +10,15 @@ import java.util.Map;
 import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
+import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
 public class PinRenderJson implements PinRender {
 
-    public static final PinRenderJson INSTANCE = new PinRenderJson();
+    @Override
+    public String getType() {
+        return PinRenderType.JSON;
+    }
 
     public String render(Object model) {
         return PinUtils.GSON.toJson(model);

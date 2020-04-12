@@ -11,14 +11,14 @@ import java.util.Map;
 import com.pinframework.PinContentType;
 import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
+import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
 public class PinRenderFileDownload implements PinRender {
 
-    private final String fileName;
-
-    public PinRenderFileDownload(String fileName) {
-        this.fileName = fileName;
+    @Override
+    public String getType() {
+        return PinRenderType.DOWNLOAD;
     }
 
     @Override
@@ -29,8 +29,9 @@ public class PinRenderFileDownload implements PinRender {
 
     @Override
     public void changeHeaders(Map<String, List<String>> responseHeaders) {
+        //TODO: como paso el filename!!!
         PinUtils.put(responseHeaders, "Content-Disposition",
-                "attachment; filename=\"" + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\";");
+                "attachment; filename=\"" + URLEncoder.encode("fileName", StandardCharsets.UTF_8) + "\";");
         PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, "application/force-download");
 
     }

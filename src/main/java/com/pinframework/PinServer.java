@@ -28,7 +28,7 @@ public class PinServer {
     private final Map<String, PinAdapter> adaptersByPath = new HashMap<>();
     private final int port;
     private final boolean restrictedCharset;
-    private final Map<String, PinRender> rendersByContentTypeParsed = new HashMap<>();
+    private final Map<String, PinRender> rendersByType = new HashMap<>();
     private final PinRender defaultRender;
 
     //TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
@@ -51,7 +51,7 @@ public class PinServer {
 
     }
 
-    public PinServer on(String method, String path, PinHandler pinHandler) {
+    public PinServer on(String method, String path, PinHandler pinHandler, PinRender pinRender) {
         List<String> contextAndPathParameters = PinUtils.contextAndPathParameters(appContext, path);
         String contextPath = contextAndPathParameters.get(0);
         List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
@@ -59,31 +59,31 @@ public class PinServer {
         if (pinAdapter != null) {
             pinAdapter.put(method, pathParameterNames, pinHandler);
         } else {
-            pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler, this);
+            pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler, pinRender);
             httpServer.createContext(contextPath, pinAdapter);
             adaptersByPath.put(contextPath, pinAdapter);
         }
         return this;
     }
 
-    public PinServer onGet(String path, PinResponse pinResponse) {
-        return on("GET", path, ex -> pinResponse);
+    public PinServer onGet(String path, PinResponse pinResponse, String pinRenderType) {
+        return on("GET", path, ex -> pinResponse, this.findRender(pinRenderType));
     }
 
-    public PinServer onGet(String path, PinHandler pinHandler) {
-        return on("GET", path, pinHandler);
+    public PinServer onGet(String path, PinHandler pinHandler, String pinRenderType) {
+        return on("GET", path, pinHandler, this.findRender(pinRenderType));
     }
 
-    public PinServer onPut(String path, PinHandler pinHandler) {
-        return on("PUT", path, pinHandler);
+    public PinServer onPut(String path, PinHandler pinHandler, String pinRenderType) {
+        return on("PUT", path, pinHandler, this.findRender(pinRenderType));
     }
 
-    public PinServer onPost(String path, PinHandler pinHandler) {
-        return on("POST", path, pinHandler);
+    public PinServer onPost(String path, PinHandler pinHandler, String pinRenderType) {
+        return on("POST", path, pinHandler, this.findRender(pinRenderType));
     }
 
-    public PinServer onDelete(String path, PinHandler pinHandler) {
-        return on("DELETE", path, pinHandler);
+    public PinServer onDelete(String path, PinHandler pinHandler, String pinRenderType) {
+        return on("DELETE", path, pinHandler, this.findRender(pinRenderType));
     }
 
     private void resourceFolder(HttpExchange ex, String resourceFolder, File externalFolder) throws IOException {
@@ -157,13 +157,17 @@ public class PinServer {
         return httpServer;
     }
 
-    public PinRender findRender(String contentTypeParsed) {
-        if (contentTypeParsed == null) {
+    public void registerRender(PinRender pinRender){
+        rendersByType.put(pinRender.getType(), pinRender);
+    }
+
+    public PinRender findRender(String pinRenderType) {
+        if (pinRenderType == null) {
             return defaultRender;
         }
 
-        if (rendersByContentTypeParsed.containsKey(contentTypeParsed)) {
-            return rendersByContentTypeParsed.get(contentTypeParsed);
+        if (rendersByType.containsKey(pinRenderType)) {
+            return rendersByType.get(pinRenderType);
         }
 
         return defaultRender;

@@ -8,13 +8,16 @@ import java.util.List;
 import java.util.Map;
 
 import com.pinframework.PinContentType;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
+import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
 public class PinRenderTextUtf8 implements PinRender {
 
-    public static final PinRenderTextUtf8 INSTANCE = new PinRenderTextUtf8();
+    @Override
+    public String getType() {
+        return PinRenderType.TEXT;
+    }
 
     @Override
     public void render(Object obj, OutputStream outputStream) {
@@ -28,7 +31,7 @@ public class PinRenderTextUtf8 implements PinRender {
 
     @Override
     public void changeHeaders(Map<String, List<String>> responseHeaders) {
-        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, "text/plain; charset=utf-8");
+        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_PLAIN_UTF8);
     }
 
 }

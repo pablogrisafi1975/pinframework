@@ -24,23 +24,23 @@ public class PinServerIT {
     public void setup() {
         userService = new UserService();
         pinServer = new PinServerBuilder().build();
-        pinServer.onGet("constant-text", PinResponse.okText("this is the constant text"));
-        pinServer.onGet("text", ex -> PinResponse.okText("this is the text"));
+        pinServer.onGet("constant-text", PinResponse.ok("this is the constant text"), PinRenderType.TEXT);
+        pinServer.onGet("text", ex -> PinResponse.ok("this is the text"), PinRenderType.TEXT);
         pinServer.onGet("users/:id", ex -> {
             Long id;
             try {
                 id = Long.parseLong(ex.getPathParams().get("id"));
             } catch (Exception e) {
-                return new PinResponse(HttpURLConnection.HTTP_BAD_REQUEST, e, pinServer.findRender(ex.getRequestContentTypeParsed()));
+                return PinResponse.badRequest(e);
             }
 
             UserDTO userDTO = userService.get(id);
             if (userDTO != null) {
-                return PinResponse.okJson(userDTO);
+                return PinResponse.ok(userDTO);
             } else {
-                return PinResponse.notFoundJson(null);
+                return PinResponse.notFound(null);
             }
-        });
+        }, PinRenderType.JSON);
         pinServer.start();
     }
 

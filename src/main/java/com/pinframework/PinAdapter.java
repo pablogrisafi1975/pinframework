@@ -18,12 +18,12 @@ public class PinAdapter implements HttpHandler {
 
     private final Map<String, PinHandler> handlerByMethod = new HashMap<>();
     private final Map<String, List<String>> parameterNamesByMethod = new HashMap<>();
-    private final PinServer pinServer;
+    private final PinRender pinRender;
 
-    public PinAdapter(String method, List<String> pathParameterNames, PinHandler pinHandler, PinServer pinServer) {
+    public PinAdapter(String method, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender) {
         handlerByMethod.put(method, pinHandler);
         parameterNamesByMethod.put(method, pathParameterNames);
-        this.pinServer = pinServer;
+        this.pinRender = pinRender;
     }
 
     public void put(String method, List<String> pathParameterNames, PinHandler pinHandler) {
@@ -49,7 +49,6 @@ public class PinAdapter implements HttpHandler {
         boolean keepResponseOpen = false;
         try {
             PinResponse pinResponse = pinHandler.handle(pinExchange);
-            PinRender pinRender = pinResponse.getRender();
             pinRender.changeHeaders(httpExchange.getResponseHeaders());
             keepResponseOpen = pinResponse.keepResponseOpen();
             if (!keepResponseOpen) {
@@ -58,7 +57,6 @@ public class PinAdapter implements HttpHandler {
             pinRender.render(pinResponse.getObj(), httpExchange.getResponseBody());
         } catch (Exception ex) {
             LOG.error("Unexpected exception, will return INTERNAL_SERVER_ERROR=500", ex);
-            PinRender pinRender = pinServer.findRender(pinExchange.getRequestContentTypeParsed());
             try {
                 pinRender.changeHeaders(httpExchange.getResponseHeaders());
                 httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);

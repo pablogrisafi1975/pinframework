@@ -12,7 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pinframework.exceptions.PinInitializationException;
+import com.pinframework.impl.PinRenderFileDownload;
 import com.pinframework.impl.PinRenderJson;
+import com.pinframework.impl.PinRenderNull;
+import com.pinframework.impl.PinRenderTextUtf8;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 
@@ -213,7 +216,15 @@ public class PinServerBuilder {
             defaultRender = new PinRenderJson();
         }
 
-        return new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical, defaultRender);
+        PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical,
+                defaultRender);
+
+        pinServer.registerRender(new PinRenderJson());
+        pinServer.registerRender(new PinRenderTextUtf8());
+        pinServer.registerRender(new PinRenderNull());
+        pinServer.registerRender(new PinRenderFileDownload());
+
+        return pinServer;
     }
 
 }

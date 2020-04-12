@@ -14,11 +14,11 @@ import com.pinframework.PinUtils;
 import com.pinframework.impl.PinRenderNull;
 import com.sun.net.httpserver.HttpExchange;
 
-public class PinResponseSse extends PinResponse {
+public class PinResponseSse  {
     private final PrintWriter printWriter;
 
     private PinResponseSse(PinExchange pinExchange) {
-        super(HttpURLConnection.HTTP_OK, pinExchange, PinRenderNull.INSTANCE);
+        //super(HttpURLConnection.HTTP_OK, pinExchange, PinRenderNull.INSTANCE);
         HttpExchange httpExchange = pinExchange.raw();
         httpExchange.getResponseHeaders().add(PinContentType.CONTENT_TYPE, "text/event-stream");
         httpExchange.getResponseHeaders().add("CharacterEncoding", "UTF-8");
@@ -49,7 +49,6 @@ public class PinResponseSse extends PinResponse {
         return !printWriter.checkError();
     }
 
-    @Override
     public boolean keepResponseOpen() {
         return true;
     }

@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.pinframework.PinRender;
+import com.pinframework.PinRenderType;
 
 public class PinRenderNull implements PinRender {
 
-    public static final PinRenderNull INSTANCE = new PinRenderNull();
-
+    @Override
+    public String getType() {
+        return PinRenderType.NULL;
+    }
     @Override
     public void render(Object obj, OutputStream outputStream) throws IOException {
         //Server sent events do not render data on close

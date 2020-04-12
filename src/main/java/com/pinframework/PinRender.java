@@ -8,10 +8,9 @@ public interface PinRender {
     //se podría armar un csv response , y hasta u xml/excel response
     void render(Object obj, OutputStream outputStream) throws Exception;
 
+    String getType();
+
     default void changeHeaders(Map<String, List<String>> responseHeaders) {
 
     }
-
-    ;
-
 }
