@@ -125,7 +125,10 @@ public class PinUtils {
         return result;
     }
 
-    private static String removeTrailingSlash(String string) {
+    public static String removeTrailingSlash(String string) {
+        if(string.length() == 0){
+            return string;
+        }
         if(string.charAt(string.length() - 1) == '/'){
             return string.substring(0, string.length() - 1);
         }

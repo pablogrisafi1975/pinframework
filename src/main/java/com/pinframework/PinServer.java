@@ -52,14 +52,15 @@ public class PinServer {
     }
 
     public PinServer on(String method, String path, PinHandler pinHandler, PinRender pinRender) {
+        String fullPath = PinUtils.removeTrailingSlash(appContext + path);
         List<String> contextAndPathParameters = PinUtils.contextAndPathParameters(appContext, path);
         String contextPath = contextAndPathParameters.get(0);
         List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
         PinAdapter pinAdapter = adaptersByPath.get(contextPath);
         if (pinAdapter != null) {
-            pinAdapter.put(method, pathParameterNames, pinHandler);
+            pinAdapter.put(method, fullPath, pathParameterNames, pinHandler);
         } else {
-            pinAdapter = new PinAdapter(method, pathParameterNames, pinHandler, pinRender);
+            pinAdapter = new PinAdapter(method, fullPath, pathParameterNames, pinHandler, pinRender);
             httpServer.createContext(contextPath, pinAdapter);
             adaptersByPath.put(contextPath, pinAdapter);
         }

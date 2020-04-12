@@ -16,5 +16,6 @@
 * Any initialization problem and you get a PinInitializationException
 * No serialVersionUID in any place
 * By default json output is assumed with status = 200, if object is null or optional.empty status = 404
+* las slash is ingnored: /users/ or /users route to the same handler
 * Use accept header to determine render!
 

@@ -95,6 +95,21 @@ public class PinServerIT {
     @Test
     public void getV1Users() throws IOException {
         Request request = new Request.Builder()
+                .url("http://localhost:9999/v1/users")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            String body = response.body().string();
+            assertTrue(body.startsWith("[{\"id\":0,\"firstName\":\"firstName0\",\"lastName\":\"lastName0\"},"));
+            assertTrue(body.endsWith(",{\"id\":9,\"firstName\":\"firstName9\",\"lastName\":\"lastName9\"}]"));
+        }
+    }
+
+    @Test
+    public void getV1UsersWithSlash() throws IOException {
+        Request request = new Request.Builder()
                 .url("http://localhost:9999/v1/users/")
                 .build();
 
