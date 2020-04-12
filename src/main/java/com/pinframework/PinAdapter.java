@@ -62,7 +62,7 @@ public class PinAdapter implements HttpHandler {
                 httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);
                 pinRender.render(ex, httpExchange.getResponseBody());
             } catch (Exception ex2) {
-                LOG.error("More unexpected exception,Can not even write the error response about an internal error!", ex2);
+                LOG.error("More unexpected exception, can not even write the error response about an internal error!", ex2);
             }
         } finally {
             if (!keepResponseOpen) {

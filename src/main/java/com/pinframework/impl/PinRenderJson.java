@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.pinframework.PinContentType;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
@@ -30,10 +29,14 @@ public class PinRenderJson implements PinRender {
 
     @Override
     public void render(Object obj, OutputStream outputStream) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        PinUtils.GSON.toJson(obj, writer);
-        writer.flush();
-        writer.close();
+        if (obj == null) {
+            outputStream.close();
+        } else {
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
+                PinUtils.GSON.toJson(obj, writer);
+                writer.flush();
+            }
+        }
     }
 
     @Override
