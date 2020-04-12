@@ -41,7 +41,7 @@ public class PinServerIT {
                 return PinResponse.notFound(new MessageDTO("NOT_FOUND", "There is no user with id = " + id));
             }
         });
-        //this is a shorter version of user service. Is less code, but you can't return a message
+        //this is a shorter version of user service. Is less code, but you can't return a message when not found
         pinServer.onGet("v2/users/:id", ex -> {
             Long id;
             try {
@@ -50,6 +50,13 @@ public class PinServerIT {
                 return PinResponse.badRequest(e);
             }
 
+            return PinResponse.from(userService.get(id));
+
+        });
+        //this is an even shorter version of user service. Is less code, but you can't return a message when not found and
+        //you return internal error even in bad requests
+        pinServer.onGet("v3/users/:id", ex -> {
+            Long id = Long.parseLong(ex.getPathParams().get("id"));
             return PinResponse.from(userService.get(id));
 
         });
@@ -180,6 +187,60 @@ public class PinServerIT {
     public void getV2UserInternalServerError() throws IOException {
         Request request = new Request.Builder()
                 .url("http://localhost:9999/v2/users/-2")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            Assert.assertEquals(response.body().string(),
+                    "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
+        }
+    }
+
+    @Test
+    public void getV3UserFound() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v3/users/3")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Assert.assertEquals(response.code(), 200);
+            Assert.assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            Assert.assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
+        }
+    }
+
+    @Test
+    public void getV3UserNotFound() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v3/users/300")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            Assert.assertEquals(response.body().string(), "");
+        }
+    }
+
+    @Test
+    public void getV3ShouldBeUserBadRequestButInternalError() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v3/users/xxx")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            Assert.assertEquals(response.body().string(),
+                    "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
+        }
+    }
+
+    @Test
+    public void getV3UserInternalServerError() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v3/users/-2")
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
