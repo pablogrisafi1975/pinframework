@@ -74,16 +74,60 @@ public class PinServer {
         return on("GET", path, pinHandler, this.findRender(pinRenderType));
     }
 
+    public PinServer onGet(String path, PinResponse pinResponse) {
+        return on("GET", path, ex -> pinResponse, defaultRender);
+    }
+
+    public PinServer onGet(String path, PinHandler pinHandler) {
+        return on("GET", path, pinHandler, defaultRender);
+    }
+
+    public PinServer onPut(String path, PinResponse pinResponse, String pinRenderType) {
+        return on("PUT", path, ex -> pinResponse, this.findRender(pinRenderType));
+    }
+
     public PinServer onPut(String path, PinHandler pinHandler, String pinRenderType) {
         return on("PUT", path, pinHandler, this.findRender(pinRenderType));
+    }
+
+    public PinServer onPut(String path, PinResponse pinResponse) {
+        return on("PUT", path, ex -> pinResponse, defaultRender);
+    }
+
+    public PinServer onPut(String path, PinHandler pinHandler) {
+        return on("PUT", path, pinHandler, defaultRender);
+    }
+
+    public PinServer onPost(String path, PinResponse pinResponse, String pinRenderType) {
+        return on("POST", path, ex -> pinResponse, this.findRender(pinRenderType));
     }
 
     public PinServer onPost(String path, PinHandler pinHandler, String pinRenderType) {
         return on("POST", path, pinHandler, this.findRender(pinRenderType));
     }
 
+    public PinServer onPost(String path, PinResponse pinResponse) {
+        return on("POST", path, ex -> pinResponse, defaultRender);
+    }
+
+    public PinServer onPost(String path, PinHandler pinHandler) {
+        return on("POST", path, pinHandler, defaultRender);
+    }
+
+    public PinServer onDelete(String path, PinResponse pinResponse, String pinRenderType) {
+        return on("DELETE", path, ex -> pinResponse, this.findRender(pinRenderType));
+    }
+
     public PinServer onDelete(String path, PinHandler pinHandler, String pinRenderType) {
         return on("DELETE", path, pinHandler, this.findRender(pinRenderType));
+    }
+
+    public PinServer onDelete(String path, PinResponse pinResponse) {
+        return on("DELETE", path, ex -> pinResponse, defaultRender);
+    }
+
+    public PinServer onDelete(String path, PinHandler pinHandler) {
+        return on("DELETE", path, pinHandler, defaultRender);
     }
 
     private void resourceFolder(HttpExchange ex, String resourceFolder, File externalFolder) throws IOException {
@@ -157,7 +201,7 @@ public class PinServer {
         return httpServer;
     }
 
-    public void registerRender(PinRender pinRender){
+    public void registerRender(PinRender pinRender) {
         rendersByType.put(pinRender.getType(), pinRender);
     }
 

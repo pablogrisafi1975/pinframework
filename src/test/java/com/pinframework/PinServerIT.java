@@ -38,9 +38,9 @@ public class PinServerIT {
             if (userDTO != null) {
                 return PinResponse.ok(userDTO);
             } else {
-                return PinResponse.notFound(null);
+                return PinResponse.notFound(new MessageDTO("NOT_FOUND", "There is no user with id = " + id));
             }
-        }, PinRenderType.JSON);
+        });
         pinServer.start();
     }
 
@@ -92,7 +92,7 @@ public class PinServerIT {
         try (Response response = client.newCall(request).execute()) {
             Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
             Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "null");
+            Assert.assertEquals(response.body().string(), "{\"type\":\"NOT_FOUND\",\"message\":\"There is no user with id = 300\"}");
         }
     }
 
