@@ -31,6 +31,9 @@ public class PinAdapter implements HttpHandler {
             throw new PinInitializationException("PinHandler already present for route and method = '" + method + "'");
         }
         handlerByMethod.put(method, pinHandler);
+        if(parameterNamesByMethod.containsKey(method)){
+            throw new PinInitializationException("PinHandler already present for route and method = '" + method + "' but with parameters " + parameterNamesByMethod.get(method));
+        }
         parameterNamesByMethod.put(method, pathParameterNames);
     }
 

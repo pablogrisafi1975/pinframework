@@ -1,9 +1,11 @@
 package com.pinframework;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -26,6 +28,7 @@ public class PinServerIT {
         pinServer = new PinServerBuilder().build();
         pinServer.onGet("constant-text", PinResponse.ok("this is the constant text"), PinRenderType.TEXT);
         pinServer.onGet("text", ex -> PinResponse.ok("this is the text"), PinRenderType.TEXT);
+        pinServer.onGet("v1/users/", PinResponse.ok(userService.list()));
         pinServer.onGet("v1/users/:id", ex -> {
             Long id;
             try {
@@ -70,9 +73,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
-            Assert.assertEquals(response.body().string(), "this is the text");
+            assertEquals(response.code(), 200);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
+            assertEquals(response.body().string(), "this is the text");
         }
     }
 
@@ -83,9 +86,24 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
-            Assert.assertEquals(response.body().string(), "this is the constant text");
+            assertEquals(response.code(), 200);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.TEXT_PLAIN_UTF8);
+            assertEquals(response.body().string(), "this is the constant text");
+        }
+    }
+
+    @Test
+    public void getV1Users() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v1/users/")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            String body = response.body().string();
+            assertTrue(body.startsWith("[{\"id\":0,\"firstName\":\"firstName0\",\"lastName\":\"lastName0\"},"));
+            assertTrue(body.endsWith(",{\"id\":9,\"firstName\":\"firstName9\",\"lastName\":\"lastName9\"}]"));
         }
     }
 
@@ -96,9 +114,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
         }
     }
 
@@ -109,9 +127,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "{\"type\":\"NOT_FOUND\",\"message\":\"There is no user with id = 300\"}");
+            assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "{\"type\":\"NOT_FOUND\",\"message\":\"There is no user with id = 300\"}");
         }
     }
 
@@ -122,9 +140,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
         }
     }
@@ -136,9 +154,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
         }
     }
@@ -150,9 +168,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
         }
     }
 
@@ -163,9 +181,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "");
+            assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "");
         }
     }
 
@@ -176,9 +194,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
         }
     }
@@ -190,9 +208,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
         }
     }
@@ -204,9 +222,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), 200);
-            Assert.assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "{\"id\":3,\"firstName\":\"firstName3\",\"lastName\":\"lastName3\"}");
         }
     }
 
@@ -217,9 +235,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(), "");
+            assertEquals(response.code(), HttpURLConnection.HTTP_NOT_FOUND);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(), "");
         }
     }
 
@@ -230,9 +248,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
         }
     }
@@ -244,9 +262,9 @@ public class PinServerIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            Assert.assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
-            Assert.assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
-            Assert.assertEquals(response.body().string(),
+            assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
+            assertEquals(response.body().string(),
                     "{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}");
         }
     }

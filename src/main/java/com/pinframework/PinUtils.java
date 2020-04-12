@@ -108,7 +108,8 @@ public class PinUtils {
     public static List<String> contextAndPathParameters(String appContext, String path) {
         int firstColonIndex = path.indexOf(':');
         if (firstColonIndex == -1) {
-            return Collections.singletonList(appContext + path);
+            String fullContext = appContext + path;
+            return Collections.singletonList(removeTrailingSlash(fullContext));
         }
         String fullContext = appContext + path.substring(0, firstColonIndex - 1); // -1
         // to
@@ -122,6 +123,13 @@ public class PinUtils {
         result.add(fullContext);
         result.addAll(pathParameters);
         return result;
+    }
+
+    private static String removeTrailingSlash(String string) {
+        if(string.charAt(string.length() - 1) == '/'){
+            return string.substring(0, string.length() - 1);
+        }
+        return string;
     }
 
     public static Map<String, String> splitPath(String requestPath, String contextPath, List<String> pathParamNames) {
