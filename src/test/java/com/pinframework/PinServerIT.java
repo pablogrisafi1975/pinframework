@@ -31,8 +31,16 @@ public class PinServerIT {
         pinServer.onGet("text", ex -> PinResponse.ok("this is the text"), PinRenderType.TEXT);
         pinServer.onGet("v1/users/", PinResponse.ok(userService.list()));
         pinServer.onGet("v2/users/", ex -> {
-            List<UserDTO> users = userService.list();
+            //multiple representations for the same path and data. Possible, but disgusting.
+            String expectedFirstName = ex.getQueryParamFirst("firstName");
+            String expectedLastName = ex.getQueryParamFirst("lastName");
+            List<UserDTO> users = userService.list(expectedFirstName, expectedLastName);
             var accept = ex.getRequestAccept();
+            if (accept == null || accept.contains("application/json")) {
+                //I need to manually render the content
+                ex.writeResponseContentType(PinContentType.APPLICATION_JSON_UTF8);
+                return PinResponse.ok(pinServer.render(users, PinContentType.APPLICATION_JSON_UTF8));
+            }
             if (accept.contains("text/html")) {
                 //in real world you must use a template library like freemaker
                 StringBuilder sb = new StringBuilder();
@@ -178,6 +186,35 @@ public class PinServerIT {
             String body = response.body().string();
             assertTrue(body.startsWith("Id;First Name;Last Name\n"));
             assertTrue(body.endsWith("\n9;firstName9;lastName9\n"));
+        }
+    }
+
+    @Test
+    public void getV2UsersAsCSVFiltered() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v2/users?firstName=3")
+                .addHeader("Accept", "text/plain")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.TEXT_PLAIN_UTF8);
+            String body = response.body().string();
+            assertEquals(body, "Id;First Name;Last Name\n3;firstName3;lastName3\n");
+        }
+    }
+
+    @Test
+    public void getV2UsersAsJsonFiltered() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v2/users?lastName=5")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            String body = response.body().string();
+            assertEquals(body, "[{\"id\":5,\"firstName\":\"firstName5\",\"lastName\":\"lastName5\"}]");
         }
     }
 

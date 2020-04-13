@@ -1,5 +1,6 @@
 package com.pinframework;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -218,5 +219,12 @@ public class PinServer {
 
         return defaultRender;
 
+    }
+
+    public String render(Object obj, String renderType) throws Exception {
+        PinRender render = findRender(renderType);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        render.render(obj, byteArrayOutputStream);
+        return byteArrayOutputStream.toString(StandardCharsets.UTF_8);
     }
 }

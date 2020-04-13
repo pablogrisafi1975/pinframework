@@ -201,4 +201,14 @@ public class PinExchange {
         }
         return value;
     }
+
+    /**
+     *
+     * @param paramName
+     * @return the first value for that param name or null if none is present
+     */
+    public String getQueryParamFirst(String paramName) {
+        List<String> stringList = getQueryParams().get(paramName);
+        return stringList == null || stringList.isEmpty() ? null : stringList.get(0);
+    }
 }

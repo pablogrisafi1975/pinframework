@@ -2,7 +2,9 @@ package com.pinframework;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -67,4 +69,16 @@ public class UserService {
         return USER_MAP.values().stream().sorted(Comparator.comparing(UserDTO::getId)).collect(Collectors.toList());
     }
 
+    public List<UserDTO> list(String expectedFirstName, String expectedLastName) {
+        Predicate<UserDTO> firstNameFilter = expectedFirstName == null ? (UserDTO u) -> true : (UserDTO u) -> u.getFirstName().toLowerCase(
+                Locale.ENGLISH).contains(expectedFirstName.toLowerCase(Locale.ENGLISH));
+
+        Predicate<UserDTO> lastNameFilter = expectedLastName == null ? (UserDTO u) -> true : (UserDTO u) -> u.getLastName().toLowerCase(
+                Locale.ENGLISH).contains(expectedLastName.toLowerCase(Locale.ENGLISH));
+
+        return USER_MAP.values().stream().
+                filter(firstNameFilter).
+                filter(lastNameFilter).
+                sorted(Comparator.comparing(UserDTO::getId)).collect(Collectors.toList());
+    }
 }
