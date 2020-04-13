@@ -13,6 +13,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -30,11 +31,10 @@ public class PinServer {
     private final boolean restrictedCharset;
     private final Map<String, PinRender> rendersByType = new HashMap<>();
     private final PinRender defaultRender;
-
-    //TODO use default json/text/download render but allow to change... keep and pass instances around instead of static
+    private final Gson gson;
 
     PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
-            File externalFolderCanonical, PinRender defaultRender) {
+            File externalFolderCanonical, PinRender defaultRender, Gson gson) {
         this.httpServer = httpServer;
         this.restrictedCharset = restrictedCharset;
         this.appContext = appContext;
@@ -48,6 +48,7 @@ public class PinServer {
             resourceFolder(ex, "static/", externalFolderCanonical);
         }));
         this.defaultRender = defaultRender;
+        this.gson = gson;
 
     }
 
@@ -60,7 +61,7 @@ public class PinServer {
         if (pinAdapter != null) {
             pinAdapter.put(method, fullPath, pathParameterNames, pinHandler, pinRender);
         } else {
-            pinAdapter = new PinAdapter(method, fullPath, pathParameterNames, pinHandler, pinRender);
+            pinAdapter = new PinAdapter(method, fullPath, pathParameterNames, pinHandler, pinRender, gson);
             httpServer.createContext(contextPath, pinAdapter);
             adaptersByPath.put(contextPath, pinAdapter);
         }

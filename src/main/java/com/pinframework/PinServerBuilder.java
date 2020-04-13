@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.pinframework.exceptions.PinInitializationException;
 import com.pinframework.impl.PinRenderFileDownload;
 import com.pinframework.impl.PinRenderJson;
@@ -35,6 +36,7 @@ public class PinServerBuilder {
     private Executor executor = Executors.newFixedThreadPool(10);
     private boolean httpsSupportEnabled = false;
     private PinRender defaultRender = null; //if not set will be initialized before invoking the PinServer constructor
+    private Gson gson = null;//if not set will be initialized before invoking the PinServer constructor using PinGsonBuilderFactory
     // TODO: incluir un authenticator
 
     /**
@@ -165,6 +167,18 @@ public class PinServerBuilder {
         return this;
     }
 
+    /**
+     * A Gson instance that will be used to read and write JSON. <br>
+     * Default value will be constructed with PinGsonBuilderFactory;
+     *
+     * @param gson
+     * @return this instance so you can keep building
+     */
+    public PinServerBuilder gson(Gson gson) {
+        this.gson = gson;
+        return this;
+    }
+
     public PinServer build() {
         this.appContext = appContext == null || appContext.trim().length() == 0 ? "/"
                 : "/" + appContext.replaceAll("/", "") + "/";
@@ -213,14 +227,17 @@ public class PinServerBuilder {
         }
         httpServer.setExecutor(executor);
 
-        if(defaultRender == null){
-            defaultRender = new PinRenderJson();
+        if (gson == null) {
+            gson = PinGsonBuilderFactory.make().create();
+        }
+        if (defaultRender == null) {
+            defaultRender = new PinRenderJson(gson);
         }
 
         PinServer pinServer = new PinServer(httpServer, restrictedCharset, appContext, webjarsSupportEnabled, externalFolderCanonical,
-                defaultRender);
+                defaultRender, gson);
 
-        pinServer.registerRender(new PinRenderJson());
+        pinServer.registerRender(defaultRender.getType().equals(PinRenderType.JSON) ? defaultRender : new PinRenderJson(gson));
         pinServer.registerRender(new PinRenderTextUtf8());
         pinServer.registerRender(new PinRenderPassing());
         pinServer.registerRender(new PinRenderNull());

@@ -41,39 +41,6 @@ public class PinUtils {
         }
     };
 
-    //TODO: inyectable por el builder
-    //TODO: manejar mas tipos de fecha, ida y vuelta
-    /**
-     * GSON that
-     * serializes LocalDateTime as yyyy-MM-ddTHH:mm:ssZ
-     * serializes Exception as type and message
-     */
-
-    public static final Gson GSON = new GsonBuilder()
-            .disableHtmlEscaping()
-            .registerTypeAdapter(LocalDateTime.class,
-                    (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) -> new JsonPrimitive(
-                            src.format(DateTimeFormatter.ISO_DATE_TIME)))
-            .registerTypeAdapter(PinBadRequestException.class,
-                    (JsonSerializer<PinBadRequestException>) (src, typeOfSrc, context) -> {
-                        var json = new JsonObject();
-                        json.addProperty("type", src.getClass().getName());
-                        json.addProperty("message", src.getMessage());
-                        json.addProperty("messageKey", src.getMessageKey());
-                        json.addProperty("fieldName", src.getFieldName());
-                        json.addProperty("currentValue", src.getCurrentValue());
-                        json.addProperty("destinationClassName", src.getDestinationClassName());
-                        return json;
-                    })
-            .registerTypeHierarchyAdapter(Exception.class,
-                    (JsonSerializer<Exception>) (src, typeOfSrc, context) -> {
-                        var json = new JsonObject();
-                        json.addProperty("type", src.getClass().getName());
-                        json.addProperty("message", src.getMessage());
-                        return json;
-                    })
-            .create();
-
     public static void fullyRead(InputStream in) throws IOException {
         copy(in, NULL_OUTPUT_STREAM);
     }

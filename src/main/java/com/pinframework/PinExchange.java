@@ -18,10 +18,12 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import com.google.gson.Gson;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinFileUploadRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
+//TODO: separar en exchange y exchange builder
 public class PinExchange {
 
     private final HttpExchange httpExchange;
@@ -30,10 +32,12 @@ public class PinExchange {
     private Map<String, String> pathParams;
     private Map<String, FileItem> fileParams;
     private final List<String> pathParamNames;
+    private final Gson gson;
 
-    public PinExchange(HttpExchange httpExchange, List<String> pathParamNames) {
+    public PinExchange(HttpExchange httpExchange, List<String> pathParamNames, Gson gson) {
         this.httpExchange = httpExchange;
         this.pathParamNames = pathParamNames;
+        this.gson = gson;
     }
 
     public HttpExchange raw() {
@@ -106,9 +110,9 @@ public class PinExchange {
                     if (contentType == null) {
                         // TODO: log error
                     } else if ("application/json".equals(contentType)) {
-                        // that's angular enconding by default
+                        // that's angular encoding by default
                         String json = out.toString(StandardCharsets.UTF_8);
-                        postParams = PinUtils.GSON.fromJson(json, HashMap.class);
+                        postParams = gson.fromJson(json, HashMap.class);
                     } else if ("application/x-www-form-urlencoded".equals(contentType)) {
                         String postData = URLDecoder.decode(out.toString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
                         Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinInitializationException;
 import com.sun.net.httpserver.HttpExchange;
@@ -44,11 +45,14 @@ public class PinAdapter implements HttpHandler {
 
     private final Map<String, Map<String, PinHandlerRenderParamNames>> handlerByMethodAndPath = new HashMap<>();
 
+    private final Gson gson;
+
     //necesito tener mas de un handler por metodo y elegir en base a los path parameteres
-    public PinAdapter(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender) {
+    public PinAdapter(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender, Gson gson) {
         Map<String, PinHandlerRenderParamNames> map = new HashMap<>();
         map.put(fullPath, new PinHandlerRenderParamNames(pinHandler, pinRender, pathParameterNames));
         handlerByMethodAndPath.put(method, map);
+        this.gson = gson;
     }
 
     public void put(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender) {
@@ -89,7 +93,7 @@ public class PinAdapter implements HttpHandler {
             httpExchange.close();
             return;
         }
-        PinExchange pinExchange = new PinExchange(httpExchange, pinHandlerRenderParamNames.getParameterNames());
+        PinExchange pinExchange = new PinExchange(httpExchange, pinHandlerRenderParamNames.getParameterNames(), gson);
         PinRender pinRender = pinHandlerRenderParamNames.getPinRender();
         boolean keepResponseOpen = false;
         try {

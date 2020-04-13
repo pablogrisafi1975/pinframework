@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import com.google.gson.Gson;
 import com.pinframework.PinContentType;
 import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
@@ -14,17 +16,23 @@ import com.pinframework.PinUtils;
 
 public class PinRenderJson implements PinRender {
 
+    private final Gson gson;
+
+    public PinRenderJson(Gson gson) {
+        this.gson = Objects.requireNonNull(gson, "gson must not be null");
+    }
+
     @Override
     public String getType() {
         return PinRenderType.JSON;
     }
 
     public String render(Object model) {
-        return PinUtils.GSON.toJson(model);
+        return gson.toJson(model);
     }
 
     public void render(Object model, Appendable writer) {
-        PinUtils.GSON.toJson(model, writer);
+        gson.toJson(model, writer);
     }
 
     @Override
@@ -33,7 +41,7 @@ public class PinRenderJson implements PinRender {
             outputStream.close();
         } else {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
-                PinUtils.GSON.toJson(obj, writer);
+                gson.toJson(obj, writer);
                 writer.flush();
             }
         }
