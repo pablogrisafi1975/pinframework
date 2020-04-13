@@ -2,6 +2,7 @@ package com.pinframework;
 
 import static org.testng.Assert.assertEquals;
 
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -9,10 +10,12 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
+import org.apache.commons.io.IOExceptionWithCause;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.gson.Gson;
+import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.json.PinGsonBuilderFactory;
 
 public class PinGsonBuilderFactoryTest {
@@ -121,5 +124,21 @@ public class PinGsonBuilderFactoryTest {
         var user = Map.of("zonedDateTime", ZonedDateTime.of(localDateTime, zoneId));
         var json = gson.toJson(user);
         assertEquals(json, "{\"zonedDateTime\":\"2020-01-02T03:04:05-03:00\"}");
+    }
+
+    @Test
+    public void whenSerializingExceptionsThenOnlyShowTypeAndMessage(){
+        Exception e = new IOExceptionWithCause("this is the message", new IllegalArgumentException("this is an internal message"));
+        var json = gson.toJson(e);
+        assertEquals(json, "{\"type\":\"org.apache.commons.io.IOExceptionWithCause\",\"message\":\"this is the message\"}");
+
+    }
+
+    @Test
+    public void whenSerializingPinBadRequestExceptionThenShowInternalData(){
+        PinBadRequestException e = new PinBadRequestException("id", "zzzzz", "Long.class", new NumberFormatException());
+        var json = gson.toJson(e);
+        assertEquals(json, "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field id with value zzzzz can not be converted to Long.class\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"id\",\"currentValue\":\"zzzzz\",\"destinationClassName\":\"Long.class\"}");
+
     }
 }

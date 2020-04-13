@@ -5,7 +5,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.testng.annotations.AfterClass;
@@ -34,7 +33,7 @@ public class PinServerIT {
         pinServer.onGet("v2/users/", ex -> {
             List<UserDTO> users = userService.list();
             var accept = ex.getRequestAccept();
-            if(accept.contains("text/html")){
+            if (accept.contains("text/html")) {
                 //in real world you must use a template library like freemaker
                 StringBuilder sb = new StringBuilder();
                 sb.append("<html><body><table><th><td>id</td><td>First Name</td><td>Last Name</td></th>");
@@ -51,7 +50,7 @@ public class PinServerIT {
 
                 return PinResponse.ok(sb.toString());
             }
-            if(accept.contains("text/plain") || accept.contains("application/octet-stream")){
+            if (accept.contains("text/plain") || accept.contains("application/octet-stream")) {
                 //in real world you must use a csv library like commons csv
                 StringBuilder sb = new StringBuilder();
                 sb.append("Id;First Name;Last Name\n");
@@ -61,9 +60,9 @@ public class PinServerIT {
                     sb.append(user.getLastName() + "\n");
                 }
 
-                if(accept.contains("text/plain")) {
+                if (accept.contains("text/plain")) {
                     ex.writeResponseContentType(PinContentType.TEXT_PLAIN_UTF8);
-                }else{
+                } else {
 
                     ex.writeDownloadFileName("all-users.csv");
                 }
@@ -72,7 +71,6 @@ public class PinServerIT {
             }
             return PinResponse.ok(users);
         }, PinRenderType.PASSING);
-
 
         pinServer.onGet("v1/users/:id", ex -> {
             Long id;
@@ -166,6 +164,7 @@ public class PinServerIT {
             assertTrue(body.endsWith(",{\"id\":9,\"firstName\":\"firstName9\",\"lastName\":\"lastName9\"}]"));
         }
     }
+
     @Test
     public void getV2UsersAsCSV() throws IOException {
         Request request = new Request.Builder()
@@ -181,6 +180,7 @@ public class PinServerIT {
             assertTrue(body.endsWith("\n9;firstName9;lastName9\n"));
         }
     }
+
     @Test
     public void getV2UsersAsHTML() throws IOException {
         Request request = new Request.Builder()

@@ -9,8 +9,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializer;
 import com.pinframework.exceptions.PinBadRequestException;
 
-public class PinGsonBuilderFactory {
-    //TODO: manejar mas tipos de fecha, ida y vuelta
+public final class PinGsonBuilderFactory {
+
+    private PinGsonBuilderFactory() {
+    }
 
     /**
      * Makes a GsonBuilder that
