@@ -83,10 +83,6 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <artifactId>jcommander</artifactId>
-                    <groupId>com.beust</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>bsh</artifactId>
                     <groupId>org.beanshell</groupId>
                 </exclusion>

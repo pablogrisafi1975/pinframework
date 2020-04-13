@@ -12,7 +12,7 @@ import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
-public class PinRenderTextUtf8 implements PinRender {
+public class PinRenderText implements PinRender {
 
     @Override
     public String getType() {

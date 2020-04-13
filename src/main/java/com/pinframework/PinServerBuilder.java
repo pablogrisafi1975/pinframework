@@ -17,7 +17,8 @@ import com.pinframework.impl.PinRenderFileDownload;
 import com.pinframework.impl.PinRenderJson;
 import com.pinframework.impl.PinRenderNull;
 import com.pinframework.impl.PinRenderPassing;
-import com.pinframework.impl.PinRenderTextUtf8;
+import com.pinframework.impl.PinRenderText;
+import com.pinframework.json.PinGsonBuilderFactory;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 
@@ -238,7 +239,7 @@ public class PinServerBuilder {
                 defaultRender, gson);
 
         pinServer.registerRender(defaultRender.getType().equals(PinRenderType.JSON) ? defaultRender : new PinRenderJson(gson));
-        pinServer.registerRender(new PinRenderTextUtf8());
+        pinServer.registerRender(new PinRenderText());
         pinServer.registerRender(new PinRenderPassing());
         pinServer.registerRender(new PinRenderNull());
         pinServer.registerRender(new PinRenderFileDownload());

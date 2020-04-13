@@ -3,9 +3,6 @@ package com.pinframework;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,13 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
-import com.pinframework.exceptions.PinBadRequestException;
 
 public class PinUtils {
 
@@ -105,10 +95,10 @@ public class PinUtils {
     }
 
     public static String removeTrailingSlash(String string) {
-        if(string.length() == 0){
+        if (string.length() == 0) {
             return string;
         }
-        if(string.charAt(string.length() - 1) == '/'){
+        if (string.charAt(string.length() - 1) == '/') {
             return string.substring(0, string.length() - 1);
         }
         return string;

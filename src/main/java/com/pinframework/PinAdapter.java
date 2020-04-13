@@ -47,7 +47,6 @@ public class PinAdapter implements HttpHandler {
 
     private final Gson gson;
 
-    //necesito tener mas de un handler por metodo y elegir en base a los path parameteres
     public PinAdapter(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender, Gson gson) {
         Map<String, PinHandlerRenderParamNames> map = new HashMap<>();
         map.put(fullPath, new PinHandlerRenderParamNames(pinHandler, pinRender, pathParameterNames));
