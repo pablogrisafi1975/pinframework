@@ -5,6 +5,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -29,6 +30,44 @@ public class PinServerIT {
         pinServer.onGet("constant-text", PinResponse.ok("this is the constant text"), PinRenderType.TEXT);
         pinServer.onGet("text", ex -> PinResponse.ok("this is the text"), PinRenderType.TEXT);
         pinServer.onGet("v1/users/", PinResponse.ok(userService.list()));
+        pinServer.onGet("v2/users/", ex -> {
+            List<UserDTO> users = userService.list();
+            var accept = ex.getRequestAccept();
+            if(accept.contains("text/html")){
+                //in real world you must use a template library like freemaker
+                StringBuilder sb = new StringBuilder();
+                sb.append("<html><body><table><th><td>id</td><td>First Name</td><td>Last Name</td></th>");
+                for (UserDTO user : users) {
+                    sb.append("<tr>");
+                    sb.append("<td>" + user.getId() + "</td>");
+                    sb.append("<td>" + user.getFirstName() + "</td>");
+                    sb.append("<td>" + user.getLastName() + "</td>");
+                    sb.append("</tr>");
+                }
+                sb.append("</table></body></html>");
+
+                ex.writeResponseContentType(PinContentType.TEXT_HTML);
+
+                return PinResponse.ok(sb.toString());
+            }
+            if(accept.contains("text/plain")){
+                //in real world you must use a csv library like commons csv
+                StringBuilder sb = new StringBuilder();
+                sb.append("Id;First Name;Last Name\n");
+                for (UserDTO user : users) {
+                    sb.append(user.getId() + ";");
+                    sb.append(user.getFirstName() + ";");
+                    sb.append(user.getLastName() + "\n");
+                }
+
+                ex.writeResponseContentType(PinContentType.TEXT_PLAIN_UTF8);
+
+                return PinResponse.ok(sb.toString());
+            }
+            return PinResponse.ok(users);
+        }, PinRenderType.PASSING);
+
+
         pinServer.onGet("v1/users/:id", ex -> {
             Long id;
             try {
@@ -93,6 +132,21 @@ public class PinServerIT {
     }
 
     @Test
+    public void getV1UsersAsJson() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v1/users")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_JSON_UTF8);
+            String body = response.body().string();
+            assertTrue(body.startsWith("[{\"id\":0,\"firstName\":\"firstName0\",\"lastName\":\"lastName0\"},"));
+            assertTrue(body.endsWith(",{\"id\":9,\"firstName\":\"firstName9\",\"lastName\":\"lastName9\"}]"));
+        }
+    }
+
+    @Test
     public void getV1Users() throws IOException {
         Request request = new Request.Builder()
                 .url("http://localhost:9999/v1/users")
@@ -104,6 +158,21 @@ public class PinServerIT {
             String body = response.body().string();
             assertTrue(body.startsWith("[{\"id\":0,\"firstName\":\"firstName0\",\"lastName\":\"lastName0\"},"));
             assertTrue(body.endsWith(",{\"id\":9,\"firstName\":\"firstName9\",\"lastName\":\"lastName9\"}]"));
+        }
+    }
+    @Test
+    public void getV2UsersAsCSV() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v2/users")
+                .addHeader("Accept", "text/plain")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.TEXT_PLAIN_UTF8);
+            String body = response.body().string();
+            assertTrue(body.startsWith("Id;First Name;Last Name\n"));
+            assertTrue(body.endsWith("\n9;firstName9;lastName9\n"));
         }
     }
 

@@ -1,7 +1,6 @@
 package com.pinframework;
 
 public class PinContentType {
-    //TODO: create class for headers constants
     /**
      * Content-Type
      */
@@ -15,4 +14,9 @@ public class PinContentType {
      * application/json; charset=utf-8
      */
     public static final String TEXT_PLAIN_UTF8 = "text/plain; charset=utf-8";
+
+    /**
+     * text/html
+     */
+    public static final String TEXT_HTML = "text/html";
 }

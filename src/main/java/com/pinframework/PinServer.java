@@ -58,7 +58,7 @@ public class PinServer {
         List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
         PinAdapter pinAdapter = adaptersByPath.get(contextPath);
         if (pinAdapter != null) {
-            pinAdapter.put(method, fullPath, pathParameterNames, pinHandler);
+            pinAdapter.put(method, fullPath, pathParameterNames, pinHandler, pinRender);
         } else {
             pinAdapter = new PinAdapter(method, fullPath, pathParameterNames, pinHandler, pinRender);
             httpServer.createContext(contextPath, pinAdapter);

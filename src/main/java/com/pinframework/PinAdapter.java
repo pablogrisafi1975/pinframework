@@ -17,17 +17,23 @@ import com.sun.net.httpserver.HttpHandler;
 public class PinAdapter implements HttpHandler {
     private static final Logger LOG = LoggerFactory.getLogger(PinAdapter.class);
 
-    static class PinHandlerWithParamNames{
+    static class PinHandlerRenderParamNames {
         private final PinHandler pinHandler;
+        private final PinRender pinRender;
         private final List<String> parameterNames;
 
-        public PinHandlerWithParamNames(PinHandler pinHandler, List<String> parameterNames) {
+        public PinHandlerRenderParamNames(PinHandler pinHandler, PinRender pinRender, List<String> parameterNames) {
             this.pinHandler = pinHandler;
             this.parameterNames = parameterNames;
+            this.pinRender = pinRender;
         }
 
         public PinHandler getPinHandler() {
             return pinHandler;
+        }
+
+        public PinRender getPinRender() {
+            return pinRender;
         }
 
         public List<String> getParameterNames() {
@@ -35,29 +41,27 @@ public class PinAdapter implements HttpHandler {
         }
     }
 
-    private final Map<String, Map<String, PinHandlerWithParamNames>> handlerByMethodAndPath = new HashMap<>();
-    private final PinRender pinRender;
+    private final Map<String, Map<String, PinHandlerRenderParamNames>> handlerByMethodAndPath = new HashMap<>();
 
     //necesito tener mas de un handler por metodo y elegir en base a los path parameteres
     public PinAdapter(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender) {
-        Map<String, PinHandlerWithParamNames> map = new HashMap<>();
-        map.put(fullPath, new PinHandlerWithParamNames(pinHandler, pathParameterNames));
+        Map<String, PinHandlerRenderParamNames> map = new HashMap<>();
+        map.put(fullPath, new PinHandlerRenderParamNames(pinHandler, pinRender, pathParameterNames));
         handlerByMethodAndPath.put(method, map);
-        this.pinRender = pinRender;
     }
 
-    public void put(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler) {
+    public void put(String method, String fullPath, List<String> pathParameterNames, PinHandler pinHandler, PinRender pinRender) {
         if (handlerByMethodAndPath.containsKey(method)) {
             var map = handlerByMethodAndPath.get(method);
             if (map.containsKey(fullPath)) {
                 throw new PinInitializationException(
                         "PinHandler already present method = '" + method + "' and full path = '" + fullPath + "'");
             } else {
-                map.put(fullPath, new PinHandlerWithParamNames(pinHandler, pathParameterNames));
+                map.put(fullPath, new PinHandlerRenderParamNames(pinHandler, pinRender, pathParameterNames));
             }
         } else {
-            Map<String, PinHandlerWithParamNames> map = new HashMap<>();
-            map.put(fullPath, new PinHandlerWithParamNames(pinHandler, pathParameterNames));
+            Map<String, PinHandlerRenderParamNames> map = new HashMap<>();
+            map.put(fullPath, new PinHandlerRenderParamNames(pinHandler, pinRender, pathParameterNames));
             handlerByMethodAndPath.put(method, map);
         }
 
@@ -66,7 +70,7 @@ public class PinAdapter implements HttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String method = httpExchange.getRequestMethod();
-        Map<String, PinHandlerWithParamNames> pinHandlerMap = handlerByMethodAndPath.get(method);
+        Map<String, PinHandlerRenderParamNames> pinHandlerMap = handlerByMethodAndPath.get(method);
         if (pinHandlerMap == null) {
             LOG.error("Error trying to access '{}', wrong method '{}'", httpExchange.getRequestURI().getPath(),
                     method);
@@ -75,8 +79,8 @@ public class PinAdapter implements HttpHandler {
             httpExchange.close();
             return;
         }
-        PinHandlerWithParamNames pinHandlerWithParamNames = findMatchingPinHandler(httpExchange.getRequestURI().getPath(), pinHandlerMap);
-        if (pinHandlerWithParamNames == null) {
+        PinHandlerRenderParamNames pinHandlerRenderParamNames = findMatchingPinHandler(httpExchange.getRequestURI().getPath(), pinHandlerMap);
+        if (pinHandlerRenderParamNames == null) {
             LOG.error("No handler found for '{}' and method '{}'", httpExchange.getRequestURI().getPath(),
                     method);
             httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
@@ -84,10 +88,11 @@ public class PinAdapter implements HttpHandler {
             httpExchange.close();
             return;
         }
-        PinExchange pinExchange = new PinExchange(httpExchange, pinHandlerWithParamNames.getParameterNames());
+        PinExchange pinExchange = new PinExchange(httpExchange, pinHandlerRenderParamNames.getParameterNames());
+        PinRender pinRender = pinHandlerRenderParamNames.getPinRender();
         boolean keepResponseOpen = false;
         try {
-            PinResponse pinResponse = pinHandlerWithParamNames.getPinHandler().handle(pinExchange);
+            PinResponse pinResponse = pinHandlerRenderParamNames.getPinHandler().handle(pinExchange);
             pinRender.changeHeaders(httpExchange.getResponseHeaders());
             keepResponseOpen = pinResponse.keepResponseOpen();
             if (!keepResponseOpen) {
@@ -110,7 +115,7 @@ public class PinAdapter implements HttpHandler {
         }
     }
 
-    private PinHandlerWithParamNames findMatchingPinHandler(String requestURIPath, Map<String, PinHandlerWithParamNames> pinHandlerMap) {
+    private PinHandlerRenderParamNames findMatchingPinHandler(String requestURIPath, Map<String, PinHandlerRenderParamNames> pinHandlerMap) {
 
         var matchingMap = pinHandlerMap.entrySet().stream().filter(e -> uriMatches(e.getKey(), requestURIPath))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));

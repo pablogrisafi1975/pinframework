@@ -15,6 +15,7 @@ import com.pinframework.exceptions.PinInitializationException;
 import com.pinframework.impl.PinRenderFileDownload;
 import com.pinframework.impl.PinRenderJson;
 import com.pinframework.impl.PinRenderNull;
+import com.pinframework.impl.PinRenderPassing;
 import com.pinframework.impl.PinRenderTextUtf8;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
@@ -221,6 +222,7 @@ public class PinServerBuilder {
 
         pinServer.registerRender(new PinRenderJson());
         pinServer.registerRender(new PinRenderTextUtf8());
+        pinServer.registerRender(new PinRenderPassing());
         pinServer.registerRender(new PinRenderNull());
         pinServer.registerRender(new PinRenderFileDownload());
 

@@ -14,6 +14,7 @@ public class PinRenderNull implements PinRender {
     public String getType() {
         return PinRenderType.NULL;
     }
+
     @Override
     public void render(Object obj, OutputStream outputStream) throws IOException {
         //Server sent events do not render data on close

@@ -20,7 +20,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import com.pinframework.exceptions.PinFileUploadRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
-
 public class PinExchange {
 
     private final HttpExchange httpExchange;
@@ -161,4 +160,11 @@ public class PinExchange {
         return contentType == null ? null : contentType.split(";", -1)[0];
     }
 
+    public void writeResponseContentType(String contentType) {
+        PinUtils.put(raw().getResponseHeaders(), PinContentType.CONTENT_TYPE, contentType);
+    }
+
+    public String getRequestAccept() {
+        return httpExchange.getRequestHeaders().getFirst("Accept");
+    }
 }
