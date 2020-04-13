@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinInitializationException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -99,6 +100,16 @@ public class PinAdapter implements HttpHandler {
                 httpExchange.sendResponseHeaders(pinResponse.getStatus(), 0);
             }
             pinRender.render(pinResponse.getObj(), httpExchange.getResponseBody());
+        }catch (PinBadRequestException bre){
+            // this is an expected behaviour , so no error
+            try {
+                pinRender.changeHeaders(httpExchange.getResponseHeaders());
+                httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_REQUEST, 0);
+                pinRender.render(bre, httpExchange.getResponseBody());
+            } catch (Exception ex2) {
+                LOG.error("Unexpected exception, can not write the response of a bad request", ex2);
+            }
+
         } catch (Exception ex) {
             LOG.error("Unexpected exception, will return INTERNAL_SERVER_ERROR=500", ex);
             try {

@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinFileUploadRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -94,7 +96,7 @@ public class PinExchange {
     public Map<String, Object> getPostParams() {
         if (postParams == null) {
             if (isMultipart()) {
-                getFileParams(); // just because getFileParams shlould be
+                getFileParams(); // just because getFileParams should be
                 // executed first
             } else {
                 try {
@@ -164,7 +166,34 @@ public class PinExchange {
         PinUtils.put(raw().getResponseHeaders(), PinContentType.CONTENT_TYPE, contentType);
     }
 
+    /**
+     * This method will encode the file name, even if it has spaces or non-ascii chars<br/>
+     * Also, will set the contentType to application/force-download
+     *
+     * @param fileName
+     */
+    public void writeDownloadFileName(String fileName) {
+        writeResponseContentType(PinContentType.APPLICATION_FORCE_DOWNLOAD);
+        PinUtils.put(raw().getResponseHeaders(), "Content-Disposition",
+                "attachment; filename=\"" + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\";");
+    }
+
     public String getRequestAccept() {
         return httpExchange.getRequestHeaders().getFirst("Accept");
+    }
+
+    public String getPathParam(String paramName) {
+        return getPathParams().get(paramName);
+    }
+
+    public Long getPathParamAsLong(String paramName) {
+        String paramValue = getPathParam(paramName);
+        Long value;
+        try {
+            value = Long.parseLong(paramValue);
+        } catch (Exception ex) {
+            throw new PinBadRequestException(paramName, paramValue, Long.class.getSimpleName(), ex);
+        }
+        return value;
     }
 }

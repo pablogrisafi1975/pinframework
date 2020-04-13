@@ -5,6 +5,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.testng.annotations.AfterClass;
@@ -50,7 +51,7 @@ public class PinServerIT {
 
                 return PinResponse.ok(sb.toString());
             }
-            if(accept.contains("text/plain")){
+            if(accept.contains("text/plain") || accept.contains("application/octet-stream")){
                 //in real world you must use a csv library like commons csv
                 StringBuilder sb = new StringBuilder();
                 sb.append("Id;First Name;Last Name\n");
@@ -60,7 +61,12 @@ public class PinServerIT {
                     sb.append(user.getLastName() + "\n");
                 }
 
-                ex.writeResponseContentType(PinContentType.TEXT_PLAIN_UTF8);
+                if(accept.contains("text/plain")) {
+                    ex.writeResponseContentType(PinContentType.TEXT_PLAIN_UTF8);
+                }else{
+
+                    ex.writeDownloadFileName("all-users.csv");
+                }
 
                 return PinResponse.ok(sb.toString());
             }
@@ -87,7 +93,7 @@ public class PinServerIT {
         pinServer.onGet("v2/users/:id", ex -> {
             Long id;
             try {
-                id = Long.parseLong(ex.getPathParams().get("id"));
+                id = Long.parseLong(ex.getPathParam("id"));
             } catch (Exception e) {
                 return PinResponse.badRequest(e);
             }
@@ -96,9 +102,9 @@ public class PinServerIT {
 
         });
         //this is an even shorter version of user service. Is less code, but you can't return a message when not found and
-        //you return internal error even in bad requests
+        //you have a fixed message on bad request
         pinServer.onGet("v3/users/:id", ex -> {
-            Long id = Long.parseLong(ex.getPathParams().get("id"));
+            Long id = ex.getPathParamAsLong("id");
             return PinResponse.from(userService.get(id));
 
         });
@@ -170,6 +176,37 @@ public class PinServerIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(response.code(), 200);
             assertEquals(response.header("Content-Type"), PinContentType.TEXT_PLAIN_UTF8);
+            String body = response.body().string();
+            assertTrue(body.startsWith("Id;First Name;Last Name\n"));
+            assertTrue(body.endsWith("\n9;firstName9;lastName9\n"));
+        }
+    }
+    @Test
+    public void getV2UsersAsHTML() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v2/users")
+                .addHeader("Accept", "text/html")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.TEXT_HTML);
+            String body = response.body().string();
+            assertTrue(body.startsWith("<html>"));
+            assertTrue(body.endsWith("</html>"));
+        }
+    }
+
+    @Test
+    public void getV2UsersAsFile() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/v2/users")
+                .addHeader("Accept", "application/octet-stream")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(response.code(), 200);
+            assertEquals(response.header("Content-Type"), PinContentType.APPLICATION_FORCE_DOWNLOAD);
             String body = response.body().string();
             assertTrue(body.startsWith("Id;First Name;Last Name\n"));
             assertTrue(body.endsWith("\n9;firstName9;lastName9\n"));
@@ -326,16 +363,16 @@ public class PinServerIT {
     }
 
     @Test
-    public void getV3ShouldBeUserBadRequestButInternalError() throws IOException {
+    public void getV3ShouldBeUserBadRequest() throws IOException {
         Request request = new Request.Builder()
                 .url("http://localhost:9999/v3/users/xxx")
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(response.code(), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            assertEquals(response.code(), HttpURLConnection.HTTP_BAD_REQUEST);
             assertEquals(response.header(PinContentType.CONTENT_TYPE), PinContentType.APPLICATION_JSON_UTF8);
             assertEquals(response.body().string(),
-                    "{\"type\":\"java.lang.NumberFormatException\",\"message\":\"For input string: \\\"xxx\\\"\"}");
+                    "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field id with value xxx can not be converted to Long\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"id\",\"currentValue\":\"xxx\",\"destinationClassName\":\"Long\"}");
         }
     }
 

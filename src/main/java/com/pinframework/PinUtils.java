@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+import com.pinframework.exceptions.PinBadRequestException;
 
 public class PinUtils {
 
@@ -53,6 +54,17 @@ public class PinUtils {
             .registerTypeAdapter(LocalDateTime.class,
                     (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) -> new JsonPrimitive(
                             src.format(DateTimeFormatter.ISO_DATE_TIME)))
+            .registerTypeAdapter(PinBadRequestException.class,
+                    (JsonSerializer<PinBadRequestException>) (src, typeOfSrc, context) -> {
+                        var json = new JsonObject();
+                        json.addProperty("type", src.getClass().getName());
+                        json.addProperty("message", src.getMessage());
+                        json.addProperty("messageKey", src.getMessageKey());
+                        json.addProperty("fieldName", src.getFieldName());
+                        json.addProperty("currentValue", src.getCurrentValue());
+                        json.addProperty("destinationClassName", src.getDestinationClassName());
+                        return json;
+                    })
             .registerTypeHierarchyAdapter(Exception.class,
                     (JsonSerializer<Exception>) (src, typeOfSrc, context) -> {
                         var json = new JsonObject();

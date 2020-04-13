@@ -14,6 +14,10 @@ import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
+/**
+ * You need to manually set the file name, using<br>
+ *     <code>ex.writeDownloadFileName(fileName);<code/>
+ */
 public class PinRenderFileDownload implements PinRender {
 
     @Override
@@ -29,11 +33,7 @@ public class PinRenderFileDownload implements PinRender {
 
     @Override
     public void changeHeaders(Map<String, List<String>> responseHeaders) {
-        //TODO: como paso el filename!!!
-        PinUtils.put(responseHeaders, "Content-Disposition",
-                "attachment; filename=\"" + URLEncoder.encode("fileName", StandardCharsets.UTF_8) + "\";");
-        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, "application/force-download");
-
+        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.APPLICATION_FORCE_DOWNLOAD);
     }
 
 }
