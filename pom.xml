@@ -13,6 +13,7 @@
         <maven.compile.encoding>UTF-8</maven.compile.encoding>
         <maven.test.compile.encoding>UTF-8</maven.test.compile.encoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.target>11</maven.compiler.target><!-- for forbidden api -->
 
         <!-- maven plugin versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -29,6 +30,8 @@
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
         <maven-site-plugin.version>3.8.2</maven-site-plugin.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <maven-spotbugs-plugin.version>3.1.12.2</maven-spotbugs-plugin.version>
+        <maven-forbiddenapis-plugin.version>2.7</maven-forbiddenapis-plugin.version>
 
 
         <!-- general dependency versions -->
@@ -145,7 +148,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <release>11</release>
+                    <release>${maven.compiler.target}</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -280,7 +283,82 @@
                 </plugins>
             </build>
         </profile>
-
+        <profile>
+            <id>check-spotbugs</id>
+            <activation>
+                <property>
+                    <name>!quick-run</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${maven-spotbugs-plugin.version}</version>
+                        <configuration>
+                            <failOnError>true</failOnError>
+<!--                            <excludeFilterFile>spotbugs-exclude-filters.xml</excludeFilterFile>-->
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>check-forbiddenapis</id>
+            <activation>
+                <property>
+                    <name>!quick-run</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>de.thetaphi</groupId>
+                        <artifactId>forbiddenapis</artifactId>
+                        <version>${maven-forbiddenapis-plugin.version}</version>
+                        <configuration>
+                            <!--
+                              if the used Java version is too new,
+                              don't fail, just do nothing:
+                            -->
+                            <failOnUnsupportedJava>true</failOnUnsupportedJava>
+                            <bundledSignatures>
+                                <!--
+                                  This will automatically choose the right
+                                  signatures based on 'maven.compiler.target':
+                                -->
+                                <bundledSignature>jdk-unsafe</bundledSignature>
+                                <bundledSignature>jdk-deprecated</bundledSignature>
+                                <!-- disallow undocumented classes like sun.misc.Unsafe: -->
+<!--                                <bundledSignature>jdk-non-portable</bundledSignature> sun.com is the project heart-->
+                                <bundledSignature>jdk-system-out</bundledSignature>
+                                <bundledSignature>jdk-internal</bundledSignature>
+                                <bundledSignature>jdk-reflection</bundledSignature>
+                            </bundledSignatures>
+                            <signaturesFiles>
+                                <!--signaturesFile>./rel/path/to/signatures.txt</signaturesFile -->
+                            </signaturesFiles>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                    <goal>testCheck</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <!--
 Cambio de version de pom

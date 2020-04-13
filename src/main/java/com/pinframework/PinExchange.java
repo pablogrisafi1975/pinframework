@@ -21,6 +21,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import com.google.gson.Gson;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinFileUploadRuntimeException;
+import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
 //TODO: separar en exchange y exchange builder
@@ -120,8 +121,8 @@ public class PinExchange {
                     }
 
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    //will be catch in main PinAdapter
+                    throw new PinRuntimeException("Unexpected error parsing post params", e);
                 }
             }
         }

@@ -3,18 +3,15 @@ package com.pinframework.response;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
 import com.pinframework.PinContentType;
 import com.pinframework.PinExchange;
-import com.pinframework.PinMimeType;
-import com.pinframework.PinResponse;
 import com.pinframework.PinUtils;
-import com.pinframework.impl.PinRenderNull;
+import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
-public class PinResponseSse  {
+public class PinResponseSse {
     private final PrintWriter printWriter;
 
     private PinResponseSse(PinExchange pinExchange) {
@@ -27,8 +24,7 @@ public class PinResponseSse  {
             httpExchange.getResponseBody().flush();
             PinUtils.fullyRead(httpExchange.getRequestBody());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new PinRuntimeException("Unexpected error sending SSE response", e);
         }
         this.printWriter = new PrintWriter(new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8),
                 false);

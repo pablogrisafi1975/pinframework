@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class PinRenderJson implements PinRender {
         if (obj == null) {
             outputStream.close();
         } else {
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
                 gson.toJson(obj, writer);
                 writer.flush();
             }
