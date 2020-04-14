@@ -41,7 +41,7 @@
         <slf4j-api.version>1.7.30</slf4j-api.version>
 
         <!-- test libraries dependency versions -->
-        <testng.version>7.1.0</testng.version>
+        <junit.jupiter.version>5.6.2</junit.jupiter.version>
         <okhttp.version>4.2.2</okhttp.version>
         <logback.version>1.2.3</logback.version>
     </properties>
@@ -81,16 +81,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>bsh</artifactId>
-                    <groupId>org.beanshell</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

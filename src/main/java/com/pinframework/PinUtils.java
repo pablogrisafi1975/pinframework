@@ -95,6 +95,9 @@ public class PinUtils {
     }
 
     public static String removeTrailingSlash(String string) {
+        if (string == null) {
+            return null;
+        }
         if (string.length() == 0) {
             return string;
         }
