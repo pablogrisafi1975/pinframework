@@ -32,6 +32,7 @@
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <maven-spotbugs-plugin.version>3.1.12.2</maven-spotbugs-plugin.version>
         <maven-forbiddenapis-plugin.version>2.7</maven-forbiddenapis-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M4</maven-failsafe-plugin.version>
 
 
         <!-- general dependency versions -->
@@ -182,6 +183,34 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*Test.java</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -231,6 +260,9 @@
                                 <goals>
                                     <goal>prepare-agent</goal>
                                 </goals>
+                                <configuration>
+                                    <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+                                </configuration>
                             </execution>
                             <execution>
                                 <id>post-unit-test</id>
@@ -239,6 +271,31 @@
                                     <goal>check</goal>
                                     <goal>report</goal>
                                 </goals>
+                                <configuration>
+                                    <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>pre-integration-test</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <destFile>${project.build.directory}/coverage-reports/jacoco-it.exec</destFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>post-integration-test</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFile>${project.build.directory}/coverage-reports/jacoco-it.exec</dataFile>
+                                    <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                                </configuration>
                             </execution>
                         </executions>
                         <configuration>
@@ -292,7 +349,7 @@
                         <version>${maven-spotbugs-plugin.version}</version>
                         <configuration>
                             <failOnError>true</failOnError>
-<!--                            <excludeFilterFile>spotbugs-exclude-filters.xml</excludeFilterFile>-->
+                            <!--                            <excludeFilterFile>spotbugs-exclude-filters.xml</excludeFilterFile>-->
                         </configuration>
                         <executions>
                             <execution>
@@ -332,7 +389,7 @@
                                 <bundledSignature>jdk-unsafe</bundledSignature>
                                 <bundledSignature>jdk-deprecated</bundledSignature>
                                 <!-- disallow undocumented classes like sun.misc.Unsafe: -->
-<!--                                <bundledSignature>jdk-non-portable</bundledSignature> sun.com is the project heart-->
+                                <!--                                <bundledSignature>jdk-non-portable</bundledSignature> sun.com is the project heart-->
                                 <bundledSignature>jdk-system-out</bundledSignature>
                                 <bundledSignature>jdk-internal</bundledSignature>
                                 <bundledSignature>jdk-reflection</bundledSignature>
