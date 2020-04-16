@@ -19,8 +19,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.pinframework.exceptions.PinBadRequestException;
-import com.pinframework.exceptions.PinFileUploadRuntimeException;
 import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -80,9 +80,12 @@ public class PinExchange {
                             .collect(Collectors.toMap(fi -> fi.getFieldName(), Function.identity())));
                     postParams = Collections.unmodifiableMap(fileItems.stream().filter(fi -> fi.isFormField())
                             .collect(Collectors.toMap(fi -> fi.getFieldName(), fi -> utf8Value(fi))));
-                } catch (FileUploadException e) {
-                    throw new PinFileUploadRuntimeException(e);
+                } catch (FileUploadException fue) {
+                    throw new PinBadRequestException(fue.getMessage(), fue);
+                } catch (Exception ex) {
+                    throw new PinBadRequestException("Unexpected exception parsing multipart body", ex);
                 }
+
             }
         }
         return fileParams;
@@ -97,7 +100,6 @@ public class PinExchange {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, Object> getPostParams() {
         if (postParams == null) {
             if (isMultipart()) {
@@ -107,17 +109,27 @@ public class PinExchange {
                 try {
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
                     PinUtils.copy(httpExchange.getRequestBody(), out);
-                    String contentType = getRequestContentTypeParsed();
-                    if (contentType == null) {
-                        // TODO: log error
-                    } else if ("application/json".equals(contentType)) {
+                    String contentType = getRequestContentType();
+                    if (contentType == null || contentType.contains("application/json")) {
                         // that's angular encoding by default
                         String json = out.toString(StandardCharsets.UTF_8);
-                        postParams = gson.fromJson(json, HashMap.class);
-                    } else if ("application/x-www-form-urlencoded".equals(contentType)) {
-                        String postData = URLDecoder.decode(out.toString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-                        Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);
-                        postParams = splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                        try {
+                            postParams = gson.fromJson(json, HashMap.class);
+                        } catch (JsonSyntaxException jse) {
+                            throw new PinBadRequestException(jse.getMessage(), jse);
+                        } catch (Exception ex) {
+                            throw new PinBadRequestException("Unexpected exception parsing json", ex);
+                        }
+                    } else if (contentType.contains("application/x-www-form-urlencoded")) {
+                        try {
+                            String postData = URLDecoder.decode(out.toString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+                            Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);
+                            postParams = splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                        } catch (IllegalArgumentException iae) {
+                            throw new PinBadRequestException(iae.getMessage(), iae);
+                        } catch (Exception ex) {
+                            throw new PinBadRequestException("Unexpected exception parsing x-www-form-urlencoded", ex);
+                        }
                     }
 
                 } catch (IOException e) {
@@ -130,8 +142,8 @@ public class PinExchange {
     }
 
     private boolean isMultipart() {
-        String contentType = getRequestContentTypeParsed();
-        return "multipart/form-data".equals(contentType) || "multipart/mixed".equals(contentType);
+        String contentType = getRequestContentType();
+        return contentType != null && contentType.contains("multipart");
     }
 
     public Map<String, List<String>> getRequestHeaders() {
@@ -203,7 +215,6 @@ public class PinExchange {
     }
 
     /**
-     *
      * @param paramName
      * @return the first value for that param name or null if none is present
      */

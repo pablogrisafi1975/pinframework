@@ -9,9 +9,18 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 public class UserService {
-    private final Map<Long, UserDTO> USER_MAP = LongStream.range(0, 10)
-            .mapToObj(l -> new UserDTO(l, "firstName" + l, "lastName" + l))
-            .collect(Collectors.toMap(u -> u.getId(), u -> u));
+    private final Map<Long, UserDTO> USER_MAP = createMap();
+
+    private Map<Long, UserDTO> createMap() {
+        return LongStream.range(0, 10)
+                .mapToObj(l -> new UserDTO(l, "firstName" + l, "lastName" + l))
+                .collect(Collectors.toMap(u -> u.getId(), u -> u));
+    }
+
+    public void reset() {
+        USER_MAP.clear();
+        USER_MAP.putAll(createMap());
+    }
 
     /**
      * @param id
@@ -52,6 +61,8 @@ public class UserService {
             throw new IllegalArgumentException("User " + user + " already exist");
         }
 
+        user.setId(USER_MAP.keySet().stream().max(Comparator.naturalOrder()).orElse(0L) + 1L);
+
         USER_MAP.put(user.getId(), user);
 
         return user;
@@ -81,4 +92,5 @@ public class UserService {
                 filter(lastNameFilter).
                 sorted(Comparator.comparing(UserDTO::getId)).collect(Collectors.toList());
     }
+
 }
