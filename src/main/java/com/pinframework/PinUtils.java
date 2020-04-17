@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class PinUtils {
@@ -108,7 +109,7 @@ public class PinUtils {
     }
 
     public static Map<String, String> splitPath(String requestPath, String contextPath, List<String> pathParamNames) {
-        String[] pathParamValues = requestPath.replace(contextPath, "").split("/", -1);
+        String[] pathParamValues = requestPath.replaceFirst(Pattern.quote(contextPath), "").split("/", -1);
         Map<String, String> map = new HashMap<>();
         for (int i = 0; i < pathParamNames.size(); i++) {
             String key = pathParamNames.get(i);

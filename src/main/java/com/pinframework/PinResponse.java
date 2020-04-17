@@ -21,6 +21,10 @@ public class PinResponse {
         return new PinResponse(HttpURLConnection.HTTP_OK, obj);
     }
 
+    public static PinResponse ok() {
+        return new PinResponse(HttpURLConnection.HTTP_OK, null);
+    }
+
     public static PinResponse notFound(Object obj) {
         return new PinResponse(HttpURLConnection.HTTP_NOT_FOUND, obj);
     }
