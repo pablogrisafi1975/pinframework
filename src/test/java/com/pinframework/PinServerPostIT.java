@@ -38,6 +38,9 @@ public class PinServerPostIT {
         pinServer.onPost("empty-ok", PinResponse.ok());
         pinServer.onPost("text-ok", PinResponse.ok("ok"), PinRenderType.TEXT);
         pinServer.onPost("echo/:text", ex -> PinResponse.ok(ex.getPathParam("text")), PinRenderType.TEXT);
+        pinServer.onPost("always-error", ex -> {
+            throw new IllegalArgumentException("my internal error");
+        });
         pinServer.onPost("v1/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
             //this is how services works nowadays
@@ -122,6 +125,22 @@ public class PinServerPostIT {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.TEXT_PLAIN_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("echo this", response.body().string());
+        }
+    }
+
+    @Test
+    public void postAlwaysErrorInternalError() throws IOException {
+        final RequestBody body = RequestBody
+                .create("this is not a valid json but Pin will not parse it", MediaType.get("application/json"));
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/always-error")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"java.lang.IllegalArgumentException\",\"message\":\"my internal error\"}", response.body().string());
         }
     }
 
@@ -280,7 +299,8 @@ public class PinServerPostIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"the request was rejected because no multipart boundary was found\",\"messageKey\":\"CAN_NOT_PARSE\"}",
+            assertEquals(
+                    "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"the request was rejected because no multipart boundary was found\",\"messageKey\":\"CAN_NOT_PARSE\"}",
                     response.body().string());
         }
     }
