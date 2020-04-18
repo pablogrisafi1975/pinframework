@@ -41,33 +41,40 @@ public class PinServerPostIT {
         pinServer.onPost("always-error", ex -> {
             throw new IllegalArgumentException("my internal error");
         });
-        pinServer.onPost("v1/users", ex -> {
+        pinServer.onPost("json/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
             //this is how services works normally
             Map<String, Object> postParams = ex.getPostParams();
             String firstName = (String) postParams.get("firstName");
             String lastName = (String) postParams.get("lastName");
+            List<String> tags = (List<String>) postParams.get("tags");
 
-            var user = new UserDTO(null, firstName, lastName);
+            var user = new UserDTO(null, firstName, lastName, tags);
 
             return PinResponse.ok(userService.savNew(user));
-
         });
-        pinServer.onPost("v2/users", ex -> {
+        pinServer.onPost("json/v2/users", ex -> {
+            //post as anything, Content-Type header will be ignored.
+            var user = ex.getPostBodyAs(UserDTO.class);
+            return PinResponse.ok(userService.savNew(user));
+        });
+        pinServer.onPost("form/users", ex -> {
             //post as x-www-form-urlencoded or as multipart, parsed as a map<String, List<String>>
             //this is how classic forms without files work
             //Also, this is how you upload files
             Map<String, List<String>> formParams = ex.getFormParams();
             String firstName = formParams.get("firstName").get(0);
             String lastName = formParams.get("lastName").get(0);
+            List<String> tags = formParams.get("tags");
 
             List<FileItem> files = ex.getFileParams().get("file");
-            FileItem fileItem = files != null && !files.isEmpty() ? files.get(0) : null;
+            FileItem fileItem1 = files != null && !files.isEmpty() ? files.get(0) : null;
+            FileItem fileItem2 = files != null && !files.isEmpty() ? files.get(1) : null;
             UserDTO user;
-            if (fileItem == null) {
-                user = new UserDTO(null, firstName, lastName);
+            if (fileItem1 == null) {
+                user = new UserDTO(null, firstName, lastName, tags);
             } else {
-                user = new UserDTO(null, fileItem.getName(), new String(fileItem.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+                user = new UserDTO(null, fileItem1.getName(), new String(fileItem2.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
             }
 
             return PinResponse.ok(userService.savNew(user));
@@ -149,16 +156,16 @@ public class PinServerPostIT {
     @Test
     public void postNewUserJsonOk() throws IOException {
         final RequestBody body = RequestBody
-                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\"}", MediaType.get("application/json"));
+                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\"}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", response.body().string());
         }
     }
 
@@ -166,7 +173,7 @@ public class PinServerPostIT {
     public void postNewUserJsonBadRequest() throws IOException {
         final RequestBody body = RequestBody.create("{llalalala}", MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .post(body)
                 .build();
 
@@ -180,18 +187,51 @@ public class PinServerPostIT {
     }
 
     @Test
-    public void postNewUserFormUrlEncodedOk() throws IOException {
+    public void postNewUserJsonV2Ok() throws IOException {
         final RequestBody body = RequestBody
-                .create("firstName=firstName101&lastName=lastName101", MediaType.get("application/x-www-form-urlencoded"));
+                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/json/v2/users")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\"}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", response.body().string());
+        }
+    }
+
+    @Test
+    public void postNewUserJsonV2BadRequest() throws IOException {
+        final RequestBody body = RequestBody.create("{llalalala}", MediaType.get("application/json"));
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/json/v2/users")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals(
+                    "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"com.google.gson.stream.MalformedJsonException: Expected ':' at line 1 column 12 path $.llalalala\",\"messageKey\":\"CAN_NOT_PARSE\"}",
+                    response.body().string());
+        }
+    }
+
+    @Test
+    public void postNewUserFormUrlEncodedOk() throws IOException {
+        final RequestBody body = RequestBody
+                .create("firstName=firstName101&lastName=lastName101&tags=a&tags=b", MediaType.get("application/x-www-form-urlencoded"));
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/form/users")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"b\"]}", response.body().string());
         }
     }
 
@@ -200,7 +240,7 @@ public class PinServerPostIT {
         final RequestBody body = RequestBody
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("application/x-www-form-urlencoded"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .post(body)
                 .build();
 
@@ -219,17 +259,18 @@ public class PinServerPostIT {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("firstName", "firstName101")
                 .addFormDataPart("lastName", "lastName101")
-                .addFormDataPart("lastName", "lastName101")
+                .addFormDataPart("tags", "a")
+                .addFormDataPart("tags", "c")
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\"}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"c\"]}", response.body().string());
         }
     }
 
@@ -239,7 +280,7 @@ public class PinServerPostIT {
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("multipart/form-data"));
 
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .post(body)
                 .build();
 
@@ -259,21 +300,21 @@ public class PinServerPostIT {
                 .addFormDataPart("firstName", "firstName101")
                 .addFormDataPart("lastName", "lastName101")
                 .addPart(MultipartBody.Part
-                        .createFormData("file", "this is the file name", RequestBody.create("this is the file content".getBytes(
+                        .createFormData("file", "this is the file name 1", RequestBody.create("this is the file content 1".getBytes(
                                 StandardCharsets.UTF_8))))
                 .addPart(MultipartBody.Part
-                        .createFormData("file", "this is the file name", RequestBody.create("this is the file content".getBytes(
+                        .createFormData("file", "this is the file name 2", RequestBody.create("this is the file content 2".getBytes(
                                 StandardCharsets.UTF_8))))
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"this is the file name\",\"lastName\":\"this is the file content\"}",
+            assertEquals("{\"id\":10,\"firstName\":\"this is the file name 1\",\"lastName\":\"this is the file content 2\"}",
                     response.body().string());
         }
     }
@@ -298,7 +339,7 @@ public class PinServerPostIT {
                 + "--4e0eb713-ebef-4747-954b-d087f607cf00--\n";
         final RequestBody body = RequestBody.create(badMultipart, MediaType.parse("multipart/form-data"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .post(body)
                 .build();
 

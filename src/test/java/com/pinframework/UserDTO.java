@@ -1,5 +1,7 @@
 package com.pinframework;
 
+import java.util.List;
+
 /**
  * Example class for testing
  */
@@ -7,11 +9,19 @@ public class UserDTO {
     private Long id;
     private String firstName;
     private String lastName;
+    private List<String> tags;
 
     public UserDTO(Long id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+    }
+
+    public UserDTO(Long id, String firstName, String lastName, List<String> tags) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.tags = tags;
     }
 
     @Override
@@ -20,6 +30,7 @@ public class UserDTO {
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", tags=" + tags +
                 '}';
     }
 
@@ -45,5 +56,13 @@ public class UserDTO {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 }

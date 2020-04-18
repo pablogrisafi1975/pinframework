@@ -93,6 +93,41 @@ public class PinExchange {
         return postParams;
     }
 
+    /**
+     * Parses the body as json into a new Object of class clazz<br>
+     * Can only be called once
+     * Will ignore the Content type header
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    public <T> T getPostBodyAs(Class<T> clazz) {
+        if (streamParsed) {
+            throw new PinRuntimeException("Trying to parse the body twice");
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            PinUtils.copy(httpExchange.getRequestBody(), out);
+        } catch (IOException e) {
+            //will be catch in main PinAdapter
+            throw new PinRuntimeException("Unexpected error reading input stream", e);
+        }
+        streamParsed = true;
+        T obj;
+        try {
+            obj = gson.fromJson(out.toString(StandardCharsets.UTF_8), clazz);
+            postParams = Collections.emptyMap();
+            fileParams = Collections.emptyMap();
+            formParams = Collections.emptyMap();
+        } catch (JsonSyntaxException jse) {
+            throw new PinBadRequestException(jse.getMessage(), jse);
+        } catch (Exception ex) {
+            throw new PinBadRequestException("Unexpected exception parsing json", ex);
+        }
+        return obj;
+    }
+
     private void parseStream() {
         String contentType = getRequestContentType();
         if (contentType != null && contentType.contains("multipart")) {
@@ -240,4 +275,5 @@ public class PinExchange {
         List<String> stringList = getQueryParams().get(paramName);
         return stringList == null || stringList.isEmpty() ? null : stringList.get(0);
     }
+
 }

@@ -41,7 +41,7 @@ public class PinServerPutIT {
         pinServer.onPut("always-error", ex -> {
             throw new IllegalArgumentException("my internal error");
         });
-        pinServer.onPut("v1/users", ex -> {
+        pinServer.onPut("json/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
             //this is how services works nowadays
             //also supports multipart for uploading files
@@ -60,7 +60,7 @@ public class PinServerPutIT {
             return PinResponse.ok(userService.update(user));
 
         });
-        pinServer.onPut("v2/users", ex -> {
+        pinServer.onPut("form/users", ex -> {
             //post as x-www-form-urlencoded, parsed as a map<String, List<String>>
             //this is how classic forms without files used to work
             //I need to cast as List<String> because this old format support arrays of elements
@@ -151,7 +151,7 @@ public class PinServerPutIT {
         final RequestBody body = RequestBody
                 .create("{\"id\":5, \"firstName\":\"firstName100\",\"lastName\":\"lastName100\"}", MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
@@ -166,7 +166,7 @@ public class PinServerPutIT {
     public void putNewUserJsonBadRequest() throws IOException {
         final RequestBody body = RequestBody.create("{llalalala}", MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
@@ -184,7 +184,7 @@ public class PinServerPutIT {
         final RequestBody body = RequestBody
                 .create("id=5&firstName=firstName101&lastName=lastName101", MediaType.get("application/x-www-form-urlencoded"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .put(body)
                 .build();
 
@@ -200,7 +200,7 @@ public class PinServerPutIT {
         final RequestBody body = RequestBody
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("application/x-www-form-urlencoded"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/form/users")
                 .put(body)
                 .build();
 
@@ -222,7 +222,7 @@ public class PinServerPutIT {
                 .addFormDataPart("lastName", "lastName101")
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
@@ -239,7 +239,7 @@ public class PinServerPutIT {
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("multipart/form-data"));
 
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
@@ -263,7 +263,7 @@ public class PinServerPutIT {
                                 StandardCharsets.UTF_8))))
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
@@ -295,7 +295,7 @@ public class PinServerPutIT {
                 + "--4e0eb713-ebef-4747-954b-d087f607cf00--\n";
         final RequestBody body = RequestBody.create(badMultipart, MediaType.parse("multipart/form-data"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/json/users")
                 .put(body)
                 .build();
 
