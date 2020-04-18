@@ -43,12 +43,22 @@ public class PinServerPutIT {
         });
         pinServer.onPut("json/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
-            //this is how services works nowadays
-            //also supports multipart for uploading files
             Map<String, Object> postParams = ex.getPostParams();
             Long id = ((Double) postParams.get("id")).longValue();
             String firstName = (String) postParams.get("firstName");
             String lastName = (String) postParams.get("lastName");
+            var user = new UserDTO(id, firstName, lastName);
+
+            return PinResponse.ok(userService.update(user));
+
+        });
+        pinServer.onPut("form/users", ex -> {
+            //post as x-www-form-urlencoded or multipart, parsed as a map<String, List<String>>
+            //this is how classic forms without files used to work
+            Map<String, List<String>> formParams = ex.getFormParams();
+            Long id = Long.parseLong(formParams.get("id").get(0));
+            String firstName = formParams.get("firstName").get(0);
+            String lastName = formParams.get("lastName").get(0);
             List<FileItem> files = ex.getFileParams().get("file");
             FileItem fileItem = files != null && !files.isEmpty() ? files.get(0) : null;
             UserDTO user;
@@ -59,18 +69,6 @@ public class PinServerPutIT {
             }
             return PinResponse.ok(userService.update(user));
 
-        });
-        pinServer.onPut("form/users", ex -> {
-            //post as x-www-form-urlencoded, parsed as a map<String, List<String>>
-            //this is how classic forms without files used to work
-            //I need to cast as List<String> because this old format support arrays of elements
-            Map<String, Object> postParams = ex.getPostParams();
-            Long id = Long.parseLong(((List<String>) postParams.get("id")).get(0));
-            String firstName = ((List<String>) postParams.get("firstName")).get(0);
-            String lastName = ((List<String>) postParams.get("lastName")).get(0);
-            var user = new UserDTO(id, firstName, lastName);
-
-            return PinResponse.ok(userService.update(user));
 
         });
 
@@ -222,7 +220,7 @@ public class PinServerPutIT {
                 .addFormDataPart("lastName", "lastName101")
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/json/users")
+                .url("http://localhost:9999/form/users")
                 .put(body)
                 .build();
 
@@ -256,6 +254,7 @@ public class PinServerPutIT {
     public void putNewUserFormWithFileOK() throws IOException {
         final RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
+                .addFormDataPart("id", "5")
                 .addFormDataPart("firstName", "firstName101")
                 .addFormDataPart("lastName", "lastName101")
                 .addPart(MultipartBody.Part
@@ -263,14 +262,14 @@ public class PinServerPutIT {
                                 StandardCharsets.UTF_8))))
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/json/users")
+                .url("http://localhost:9999/form/users")
                 .put(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"this is the file name\",\"lastName\":\"this is the file content\"}",
+            assertEquals("{\"id\":5,\"firstName\":\"this is the file name\",\"lastName\":\"this is the file content\"}",
                     response.body().string());
         }
     }
