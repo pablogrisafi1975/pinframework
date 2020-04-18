@@ -105,6 +105,7 @@ public class PinAdapter implements HttpHandler {
             pinRender.render(pinResponse.getObj(), httpExchange.getResponseBody());
         }catch (PinBadRequestException bre){
             // this is an expected behaviour , so no error
+            LOG.debug("Exception trying to read data", bre);
             try {
                 pinRender.changeHeaders(httpExchange.getResponseHeaders());
                 httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_REQUEST, 0);

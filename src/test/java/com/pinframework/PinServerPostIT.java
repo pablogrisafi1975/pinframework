@@ -43,30 +43,32 @@ public class PinServerPostIT {
         });
         pinServer.onPost("v1/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
-            //this is how services works nowadays
-            //also supports multipart for uploading files
+            //this is how services works normally
             Map<String, Object> postParams = ex.getPostParams();
             String firstName = (String) postParams.get("firstName");
             String lastName = (String) postParams.get("lastName");
 
-            FileItem fileItem = ex.getFileParams().get("file");
+            var user = new UserDTO(null, firstName, lastName);
+
+            return PinResponse.ok(userService.savNew(user));
+
+        });
+        pinServer.onPost("v2/users", ex -> {
+            //post as x-www-form-urlencoded or as multipart, parsed as a map<String, List<String>>
+            //this is how classic forms without files work
+            //Also, this is how you upload files
+            Map<String, List<String>> formParams = ex.getFormParams();
+            String firstName = formParams.get("firstName").get(0);
+            String lastName = formParams.get("lastName").get(0);
+
+            List<FileItem> files = ex.getFileParams().get("file");
+            FileItem fileItem = files != null && !files.isEmpty() ? files.get(0) : null;
             UserDTO user;
             if (fileItem == null) {
                 user = new UserDTO(null, firstName, lastName);
             } else {
                 user = new UserDTO(null, fileItem.getName(), new String(fileItem.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
             }
-            return PinResponse.ok(userService.savNew(user));
-
-        });
-        pinServer.onPost("v2/users", ex -> {
-            //post as x-www-form-urlencoded, parsed as a map<String, List<String>>
-            //this is how classic forms without files used to work
-            //I need to cast as List<String> because this old format support arrays of elements
-            Map<String, Object> postParams = ex.getPostParams();
-            String firstName = ((List<String>) postParams.get("firstName")).get(0);
-            String lastName = ((List<String>) postParams.get("lastName")).get(0);
-            var user = new UserDTO(null, firstName, lastName);
 
             return PinResponse.ok(userService.savNew(user));
 
@@ -217,9 +219,10 @@ public class PinServerPostIT {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("firstName", "firstName101")
                 .addFormDataPart("lastName", "lastName101")
+                .addFormDataPart("lastName", "lastName101")
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/v2/users")
                 .post(body)
                 .build();
 
@@ -236,7 +239,7 @@ public class PinServerPostIT {
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("multipart/form-data"));
 
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/v2/users")
                 .post(body)
                 .build();
 
@@ -258,9 +261,12 @@ public class PinServerPostIT {
                 .addPart(MultipartBody.Part
                         .createFormData("file", "this is the file name", RequestBody.create("this is the file content".getBytes(
                                 StandardCharsets.UTF_8))))
+                .addPart(MultipartBody.Part
+                        .createFormData("file", "this is the file name", RequestBody.create("this is the file content".getBytes(
+                                StandardCharsets.UTF_8))))
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/v2/users")
                 .post(body)
                 .build();
 
@@ -292,7 +298,7 @@ public class PinServerPostIT {
                 + "--4e0eb713-ebef-4747-954b-d087f607cf00--\n";
         final RequestBody body = RequestBody.create(badMultipart, MediaType.parse("multipart/form-data"));
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v1/users")
+                .url("http://localhost:9999/v2/users")
                 .post(body)
                 .build();
 

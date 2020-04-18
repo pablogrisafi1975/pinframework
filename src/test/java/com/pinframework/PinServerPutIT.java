@@ -49,8 +49,8 @@ public class PinServerPutIT {
             Long id = ((Double) postParams.get("id")).longValue();
             String firstName = (String) postParams.get("firstName");
             String lastName = (String) postParams.get("lastName");
-
-            FileItem fileItem = ex.getFileParams().get("file");
+            List<FileItem> files = ex.getFileParams().get("file");
+            FileItem fileItem = files != null && !files.isEmpty() ? files.get(0) : null;
             UserDTO user;
             if (fileItem == null) {
                 user = new UserDTO(id, firstName, lastName);

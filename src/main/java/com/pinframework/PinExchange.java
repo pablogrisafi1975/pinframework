@@ -6,17 +6,20 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -24,14 +27,17 @@ import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 
-//TODO: separar en exchange y exchange builder
 public class PinExchange {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PinExchange.class);
 
     private final HttpExchange httpExchange;
     private Map<String, List<String>> queryParams;
-    private Map<String, Object> postParams;
     private Map<String, String> pathParams;
-    private Map<String, FileItem> fileParams;
+    private Map<String, Object> postParams;
+    private Map<String, List<String>> formParams;
+    private Map<String, List<FileItem>> fileParams;
+    private boolean streamParsed = false;
     private final List<String> pathParamNames;
     private final Gson gson;
 
@@ -62,33 +68,91 @@ public class PinExchange {
     }
 
     /**
-     * Only actual files are returned. Extra values are present in getPostParams
+     * Only actual files are returned. Extra values are present in getFormDataParams
      *
-     * @return
+     * @return a map from parameter name to FileItem
      */
-    public Map<String, FileItem> getFileParams() {
-        if (fileParams == null) {
-            if (!isMultipart()) {
-                // TODO: log error
-                fileParams = Collections.emptyMap();
-            } else {
-                DiskFileItemFactory d = new DiskFileItemFactory();
-                ServletFileUpload up = new ServletFileUpload(d);
-                try {
-                    List<FileItem> fileItems = up.parseRequest(new PinHttpHandlerRequestContext(httpExchange));
-                    fileParams = Collections.unmodifiableMap(fileItems.stream().filter(fi -> !fi.isFormField())
-                            .collect(Collectors.toMap(fi -> fi.getFieldName(), Function.identity())));
-                    postParams = Collections.unmodifiableMap(fileItems.stream().filter(fi -> fi.isFormField())
-                            .collect(Collectors.toMap(fi -> fi.getFieldName(), fi -> utf8Value(fi))));
-                } catch (FileUploadException fue) {
-                    throw new PinBadRequestException(fue.getMessage(), fue);
-                } catch (Exception ex) {
-                    throw new PinBadRequestException("Unexpected exception parsing multipart body", ex);
-                }
-
-            }
+    public Map<String, List<FileItem>> getFileParams() {
+        if (!streamParsed) {
+            parseStream();
         }
         return fileParams;
+    }
+
+    public Map<String, List<String>> getFormParams() {
+        if (!streamParsed) {
+            parseStream();
+        }
+        return formParams;
+    }
+
+    public Map<String, Object> getPostParams() {
+        if (!streamParsed) {
+            parseStream();
+        }
+        return postParams;
+    }
+
+    private void parseStream() {
+        String contentType = getRequestContentType();
+        if (contentType != null && contentType.contains("multipart")) {
+            //I don't read the whole stream here, until the user really ask for it
+            DiskFileItemFactory d = new DiskFileItemFactory();
+            ServletFileUpload up = new ServletFileUpload(d);
+            try {
+                List<FileItem> fileItems = up.parseRequest(new PinHttpHandlerRequestContext(httpExchange));
+                fileParams = Collections.unmodifiableMap(fileItems.stream()
+                        .filter(fi -> !fi.isFormField())
+                        .map(fi -> new AbstractMap.SimpleImmutableEntry<>(fi.getFieldName(), fi))
+                        .collect(Collectors.groupingBy(AbstractMap.SimpleImmutableEntry::getKey, LinkedHashMap::new,
+                                Collectors.mapping(Map.Entry::getValue, Collectors.toList()))));
+                formParams = Collections.unmodifiableMap(fileItems.stream()
+                        .filter(fi -> fi.isFormField())
+                        .map(fi -> new AbstractMap.SimpleImmutableEntry<>(fi.getFieldName(), utf8Value(fi)))
+                        .collect(Collectors.groupingBy(AbstractMap.SimpleImmutableEntry::getKey, LinkedHashMap::new,
+                                Collectors.mapping(Map.Entry::getValue, Collectors.toList()))));
+                postParams = Collections.emptyMap();
+            } catch (FileUploadException fue) {
+                throw new PinBadRequestException(fue.getMessage(), fue);
+            } catch (Exception ex) {
+                throw new PinBadRequestException("Unexpected exception parsing multipart body", ex);
+            }
+        } else {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try {
+                PinUtils.copy(httpExchange.getRequestBody(), out);
+            } catch (IOException e) {
+                //will be catch in main PinAdapter
+                throw new PinRuntimeException("Unexpected error reading input stream", e);
+            }
+            if (contentType == null || contentType.contains("application/json")) {
+                // that's angular encoding by default
+                String json = out.toString(StandardCharsets.UTF_8);
+                try {
+                    postParams = gson.fromJson(json, HashMap.class);
+                    fileParams = Collections.emptyMap();
+                    formParams = Collections.emptyMap();
+                } catch (JsonSyntaxException jse) {
+                    throw new PinBadRequestException(jse.getMessage(), jse);
+                } catch (Exception ex) {
+                    throw new PinBadRequestException("Unexpected exception parsing json", ex);
+                }
+            } else if (contentType.contains("application/x-www-form-urlencoded")) {
+                try {
+                    String postData = URLDecoder.decode(out.toString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+                    Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);
+                    formParams = splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                    fileParams = Collections.emptyMap();
+                    postParams = Collections.emptyMap();
+                } catch (IllegalArgumentException iae) {
+                    throw new PinBadRequestException(iae.getMessage(), iae);
+                } catch (Exception ex) {
+                    throw new PinBadRequestException("Unexpected exception parsing x-www-form-urlencoded", ex);
+                }
+            }
+
+        }
+        streamParsed = true;
     }
 
     private String utf8Value(FileItem fi) {
@@ -98,52 +162,6 @@ public class PinExchange {
             //TODO: log error
             return fi.getString();
         }
-    }
-
-    public Map<String, Object> getPostParams() {
-        if (postParams == null) {
-            if (isMultipart()) {
-                getFileParams(); // just because getFileParams should be
-                // executed first
-            } else {
-                try {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    PinUtils.copy(httpExchange.getRequestBody(), out);
-                    String contentType = getRequestContentType();
-                    if (contentType == null || contentType.contains("application/json")) {
-                        // that's angular encoding by default
-                        String json = out.toString(StandardCharsets.UTF_8);
-                        try {
-                            postParams = gson.fromJson(json, HashMap.class);
-                        } catch (JsonSyntaxException jse) {
-                            throw new PinBadRequestException(jse.getMessage(), jse);
-                        } catch (Exception ex) {
-                            throw new PinBadRequestException("Unexpected exception parsing json", ex);
-                        }
-                    } else if (contentType.contains("application/x-www-form-urlencoded")) {
-                        try {
-                            String postData = URLDecoder.decode(out.toString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-                            Map<String, List<String>> splitQuery = PinUtils.splitQuery(postData);
-                            postParams = splitQuery.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                        } catch (IllegalArgumentException iae) {
-                            throw new PinBadRequestException(iae.getMessage(), iae);
-                        } catch (Exception ex) {
-                            throw new PinBadRequestException("Unexpected exception parsing x-www-form-urlencoded", ex);
-                        }
-                    }
-
-                } catch (IOException e) {
-                    //will be catch in main PinAdapter
-                    throw new PinRuntimeException("Unexpected error parsing post params", e);
-                }
-            }
-        }
-        return postParams;
-    }
-
-    private boolean isMultipart() {
-        String contentType = getRequestContentType();
-        return contentType != null && contentType.contains("multipart");
     }
 
     public Map<String, List<String>> getRequestHeaders() {
