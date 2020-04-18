@@ -7,6 +7,7 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.fileupload.FileItem;
 import org.junit.jupiter.api.AfterAll;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import com.google.gson.reflect.TypeToken;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -43,7 +45,9 @@ public class PinServerPostIT {
         });
         pinServer.onPost("json/users", ex -> {
             //post as application/json, parsed as a map<String, Object>
-            //this is how services works normally
+            //only use this way if you are too lazy to write a class
+            //remember even integers will be parsed as Doubles
+
             Map<String, Object> postParams = ex.getPostParams();
             String firstName = (String) postParams.get("firstName");
             String lastName = (String) postParams.get("lastName");
@@ -54,9 +58,18 @@ public class PinServerPostIT {
             return PinResponse.ok(userService.savNew(user));
         });
         pinServer.onPost("json/v2/users", ex -> {
-            //post as anything, Content-Type header will be ignored.
+            //post a json as anything, Content-Type header will be ignored.
+            //this is how services works normally
             var user = ex.getPostBodyAs(UserDTO.class);
             return PinResponse.ok(userService.savNew(user));
+        });
+        pinServer.onPost("json/v2/users-multi", ex -> {
+            //post a json as anything, Content-Type header will be ignored.
+            //this is how services works normally
+            List<UserDTO> users = ex.getPostBodyAs(new TypeToken<List<UserDTO>>() {
+            }.getType());
+
+            return PinResponse.ok(users.stream().map(user -> userService.savNew(user)).collect(Collectors.toList()));
         });
         pinServer.onPost("form/users", ex -> {
             //post as x-www-form-urlencoded or as multipart, parsed as a map<String, List<String>>
@@ -74,7 +87,8 @@ public class PinServerPostIT {
             if (fileItem1 == null) {
                 user = new UserDTO(null, firstName, lastName, tags);
             } else {
-                user = new UserDTO(null, fileItem1.getName(), new String(fileItem2.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+                user = new UserDTO(null, fileItem1.getName(),
+                        new String(fileItem2.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
             }
 
             return PinResponse.ok(userService.savNew(user));
@@ -156,7 +170,8 @@ public class PinServerPostIT {
     @Test
     public void postNewUserJsonOk() throws IOException {
         final RequestBody body = RequestBody
-                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", MediaType.get("application/json"));
+                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
+                        MediaType.get("application/json"));
         Request request = new Request.Builder()
                 .url("http://localhost:9999/json/users")
                 .post(body)
@@ -165,9 +180,12 @@ public class PinServerPostIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
+                    response.body().string());
         }
     }
+
+
 
     @Test
     public void postNewUserJsonBadRequest() throws IOException {
@@ -189,7 +207,8 @@ public class PinServerPostIT {
     @Test
     public void postNewUserJsonV2Ok() throws IOException {
         final RequestBody body = RequestBody
-                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", MediaType.get("application/json"));
+                .create("{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
+                        MediaType.get("application/json"));
         Request request = new Request.Builder()
                 .url("http://localhost:9999/json/v2/users")
                 .post(body)
@@ -198,7 +217,8 @@ public class PinServerPostIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
+                    response.body().string());
         }
     }
 
@@ -220,6 +240,24 @@ public class PinServerPostIT {
     }
 
     @Test
+    public void postNewUserJsonV2MultiOk() throws IOException {
+        final RequestBody body = RequestBody
+                .create("[{\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}, {\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"c\",\"d\"]}]",
+                        MediaType.get("application/json"));
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/json/v2/users-multi")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("[{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]},{\"id\":11,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"c\",\"d\"]}]",
+                    response.body().string());
+        }
+    }
+
+    @Test
     public void postNewUserFormUrlEncodedOk() throws IOException {
         final RequestBody body = RequestBody
                 .create("firstName=firstName101&lastName=lastName101&tags=a&tags=b", MediaType.get("application/x-www-form-urlencoded"));
@@ -231,7 +269,8 @@ public class PinServerPostIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"b\"]}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"b\"]}",
+                    response.body().string());
         }
     }
 
@@ -270,7 +309,8 @@ public class PinServerPostIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"c\"]}", response.body().string());
+            assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"c\"]}",
+                    response.body().string());
         }
     }
 

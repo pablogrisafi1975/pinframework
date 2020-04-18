@@ -3,6 +3,7 @@ package com.pinframework;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.fileupload.FileItem;
@@ -22,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinRuntimeException;
@@ -97,12 +100,38 @@ public class PinExchange {
      * Parses the body as json into a new Object of class clazz<br>
      * Can only be called once
      * Will ignore the Content type header
+     * Use this method if the object is not a generic
      *
      * @param clazz
      * @param <T>
      * @return
      */
     public <T> T getPostBodyAs(Class<T> clazz) {
+        return getPostBodyInternal(s -> gson.fromJson(s, clazz));
+    }
+
+    /**
+     * Parses the body as json into a new Object of class clazz<br>
+     * Can only be called once
+     * Will ignore the Content type header
+     * Use this method if the object itself is generic
+     * Type
+     *
+     * @param <T>     the type of the desired object
+     * @param typeOfT The specific genericized type of src. You can obtain this type by using the
+     *                {@link com.google.gson.reflect.TypeToken} class. For example, to get the type for
+     *                {@code Collection<Foo>}, you should use:
+     *                <pre>
+     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                </pre>
+     * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
+     * or if {@code json} is empty.
+     */
+    public <T> T getPostBodyAs(Type typeOfT) {
+        return getPostBodyInternal(s -> gson.fromJson(s, typeOfT));
+    }
+
+    private <T> T getPostBodyInternal(Function<String, T> gsonParser) {
         if (streamParsed) {
             throw new PinRuntimeException("Trying to parse the body twice");
         }
@@ -113,15 +142,16 @@ public class PinExchange {
             //will be catch in main PinAdapter
             throw new PinRuntimeException("Unexpected error reading input stream", e);
         }
+        String json = out.toString(StandardCharsets.UTF_8);
         streamParsed = true;
         T obj;
         try {
-            obj = gson.fromJson(out.toString(StandardCharsets.UTF_8), clazz);
+            obj = gsonParser.apply(json);
             postParams = Collections.emptyMap();
             fileParams = Collections.emptyMap();
             formParams = Collections.emptyMap();
-        } catch (JsonSyntaxException jse) {
-            throw new PinBadRequestException(jse.getMessage(), jse);
+        } catch (JsonParseException jpe) {
+            throw new PinBadRequestException(jpe.getMessage(), jpe);
         } catch (Exception ex) {
             throw new PinBadRequestException("Unexpected exception parsing json", ex);
         }
