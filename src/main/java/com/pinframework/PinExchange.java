@@ -106,8 +106,8 @@ public class PinExchange {
      * @param <T>
      * @return
      */
-    public <T> T getPostBodyAs(Class<T> clazz) {
-        return getPostBodyInternal(s -> gson.fromJson(s, clazz));
+    public <T> T getBodyAs(Class<T> clazz) {
+        return getBodyInternal(s -> gson.fromJson(s, clazz));
     }
 
     /**
@@ -127,11 +127,11 @@ public class PinExchange {
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      */
-    public <T> T getPostBodyAs(Type typeOfT) {
-        return getPostBodyInternal(s -> gson.fromJson(s, typeOfT));
+    public <T> T getBodyAs(Type typeOfT) {
+        return getBodyInternal(s -> gson.fromJson(s, typeOfT));
     }
 
-    private <T> T getPostBodyInternal(Function<String, T> gsonParser) {
+    private <T> T getBodyInternal(Function<String, T> gsonParser) {
         if (streamParsed) {
             throw new PinRuntimeException("Trying to parse the body twice");
         }

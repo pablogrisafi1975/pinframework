@@ -60,13 +60,13 @@ public class PinServerPostIT {
         pinServer.onPost("json/v2/users", ex -> {
             //post a json as anything, Content-Type header will be ignored.
             //this is how services works normally
-            var user = ex.getPostBodyAs(UserDTO.class);
+            var user = ex.getBodyAs(UserDTO.class);
             return PinResponse.ok(userService.savNew(user));
         });
         pinServer.onPost("json/v2/users-multi", ex -> {
             //post a json as anything, Content-Type header will be ignored.
             //this is how services works normally
-            List<UserDTO> users = ex.getPostBodyAs(new TypeToken<List<UserDTO>>() {
+            List<UserDTO> users = ex.getBodyAs(new TypeToken<List<UserDTO>>() {
             }.getType());
 
             return PinResponse.ok(users.stream().map(user -> userService.savNew(user)).collect(Collectors.toList()));

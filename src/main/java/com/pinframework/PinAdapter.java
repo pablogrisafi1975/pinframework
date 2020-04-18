@@ -115,7 +115,7 @@ public class PinAdapter implements HttpHandler {
             }
 
         } catch (Exception ex) {
-            LOG.error("Unexpected exception, will return INTERNAL_SERVER_ERROR=500", ex);
+            LOG.error("Unexpected exception, will return HTTP_INTERNAL_ERROR = 500", ex);
             try {
                 pinRender.changeHeaders(httpExchange.getResponseHeaders());
                 httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, 0);

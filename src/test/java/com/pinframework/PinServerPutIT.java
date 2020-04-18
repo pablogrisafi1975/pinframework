@@ -68,8 +68,13 @@ public class PinServerPutIT {
                 user = new UserDTO(id, fileItem.getName(), new String(fileItem.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
             }
             return PinResponse.ok(userService.update(user));
+        });
 
-
+        pinServer.onPut("json/users-twice", ex -> {
+            //this will always fail because it class
+            UserDTO user = ex.getBodyAs(UserDTO.class);
+            UserDTO user2 = ex.getBodyAs(UserDTO.class);
+            return PinResponse.ok(userService.update(user));
         });
 
         pinServer.start();
@@ -145,7 +150,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserJsonOk() throws IOException {
+    public void putExistingUserJsonOk() throws IOException {
         final RequestBody body = RequestBody
                 .create("{\"id\":5, \"firstName\":\"firstName100\",\"lastName\":\"lastName100\"}", MediaType.get("application/json"));
         Request request = new Request.Builder()
@@ -161,7 +166,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserJsonBadRequest() throws IOException {
+    public void putExistingUserJsonBadRequest() throws IOException {
         final RequestBody body = RequestBody.create("{llalalala}", MediaType.get("application/json"));
         Request request = new Request.Builder()
                 .url("http://localhost:9999/json/users")
@@ -178,7 +183,23 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormUrlEncodedOk() throws IOException {
+    public void putExistingUserJsonTwiceOk() throws IOException {
+        final RequestBody body = RequestBody
+                .create("{\"id\":5, \"firstName\":\"firstName100\",\"lastName\":\"lastName100\"}", MediaType.get("application/json"));
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/json/users-twice")
+                .put(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"com.pinframework.exceptions.PinRuntimeException\",\"message\":\"Trying to parse the body twice\"}", response.body().string());
+        }
+    }
+
+    @Test
+    public void putExistingUserFormUrlEncodedOk() throws IOException {
         final RequestBody body = RequestBody
                 .create("id=5&firstName=firstName101&lastName=lastName101", MediaType.get("application/x-www-form-urlencoded"));
         Request request = new Request.Builder()
@@ -194,7 +215,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormUrlEncodedBadRequest() throws IOException {
+    public void putExistingUserFormUrlEncodedBadRequest() throws IOException {
         final RequestBody body = RequestBody
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("application/x-www-form-urlencoded"));
         Request request = new Request.Builder()
@@ -212,7 +233,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormDataOk() throws IOException {
+    public void putExistingUserFormDataOk() throws IOException {
         final RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("id", "5")
@@ -232,7 +253,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormDataBadRequest() throws IOException {
+    public void putExistingUserFormDataBadRequest() throws IOException {
         final RequestBody body = RequestBody
                 .create("\\ // ñañañ \u1234 %x", MediaType.get("multipart/form-data"));
 
@@ -251,7 +272,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormWithFileOK() throws IOException {
+    public void putExistingUserFormWithFileOK() throws IOException {
         final RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("id", "5")
@@ -275,7 +296,7 @@ public class PinServerPutIT {
     }
 
     @Test
-    public void putNewUserFormWithFileBadRequest() throws IOException {
+    public void putExistingUserFormWithFileBadRequest() throws IOException {
         final String badMultipart = "--4e0eb713-ebef-4747-954b-d087f607cf00\n"
                 + "Content-Disposition: form-data; name=\"firstName\"\n"
                 + "Content-Length: 12\n"
