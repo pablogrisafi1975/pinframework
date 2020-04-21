@@ -1,6 +1,11 @@
 package com.pinframework;
 
-public class PinContentType {
+public final class PinContentType {
+
+    private PinContentType(){
+        //coverage
+    }
+
     /**
      * Content-Type
      */

@@ -1,5 +1,7 @@
 package com.pinframework.exceptions;
 
+import java.util.StringJoiner;
+
 public class PinBadRequestException extends PinRuntimeException {
 
     private static final String MESSAGE_KEY_CAN_NOT_CONVERT = "CAN_NOT_CONVERT";
@@ -18,12 +20,26 @@ public class PinBadRequestException extends PinRuntimeException {
         this.destinationClassName = null;
     }
 
-    public PinBadRequestException(String fieldName, String currentValue, String destinationClassName, Throwable cause) {
-        super("The field " + fieldName + " with value " + currentValue + " can not be converted to " + destinationClassName, cause);
+    public PinBadRequestException(String fieldName, String currentValue, Class<?> destinationClass, Throwable cause) {
+        super("The field " + fieldName + " with value " + currentValue + " can not be converted to " + createDestinationDescription(
+                destinationClass), cause);
         this.messageKey = MESSAGE_KEY_CAN_NOT_CONVERT;
         this.fieldName = fieldName;
         this.currentValue = currentValue;
-        this.destinationClassName = destinationClassName;
+        this.destinationClassName = destinationClass.getSimpleName();
+    }
+
+    private static String createDestinationDescription(Class<?> destinationClass) {
+        if (destinationClass.isEnum()) {
+            StringJoiner joiner = new StringJoiner(",");
+            for (Object o : destinationClass.getEnumConstants()) {
+                Enum<?> enumClass = (Enum<?>) o;
+                String name = enumClass.name();
+                joiner.add(name);
+            }
+            return destinationClass.getSimpleName() + "[" + joiner.toString() + "]";
+        }
+        return destinationClass.getSimpleName();
     }
 
     public String getMessageKey() {

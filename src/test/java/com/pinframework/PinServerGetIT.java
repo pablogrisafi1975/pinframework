@@ -431,6 +431,19 @@ public class PinServerGetIT {
         }
     }
 
+    public void getCheckQueryParamSimple() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/query-params-simple?longValue=333$dayOfWeek=MONDAY&date=2020-01-02&dateTime=2020-01-02T03:04:05&zonedDateTime=2020-01-02T03:04:05-04:00")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"java.lang.NullPointerException\",\"message\":\"Fake internal error\"}",
+                    response.body().string());
+        }
+    }
+
     @AfterAll
     public void tearDown() {
         pinServer.stop(1);

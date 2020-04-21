@@ -1,9 +1,12 @@
 package com.pinframework;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -13,12 +16,13 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.json.PinGsonBuilderFactory;
 
 public class PinGsonBuilderFactoryTest {
 
-    private Gson gson = PinGsonBuilderFactory.make().create();
+    private final Gson gson = PinGsonBuilderFactory.make().create();
 
     @Test
     public void whenSerializingThenDoNotEscapeHtml() {
@@ -129,11 +133,59 @@ public class PinGsonBuilderFactoryTest {
 
     @Test
     public void whenSerializingPinBadRequestExceptionThenShowInternalData() {
-        PinBadRequestException e = new PinBadRequestException("id", "zzzzz", "Long.class", new NumberFormatException());
+        PinBadRequestException e = new PinBadRequestException("id", "zzzzz", Long.class, new NumberFormatException());
         var json = gson.toJson(e);
         assertEquals(
-                "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field id with value zzzzz can not be converted to Long.class\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"id\",\"currentValue\":\"zzzzz\",\"destinationClassName\":\"Long.class\"}",
+                "{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field id with value zzzzz can not be converted to Long\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"id\",\"currentValue\":\"zzzzz\",\"destinationClassName\":\"Long\"}",
                 json);
 
+    }
+
+    @Test
+    public void whenSerializingEnumThenUseName() {
+        var enumDTO = new EnumDTO(Month.APRIL);
+        var json = gson.toJson(enumDTO);
+        assertEquals("{\"month\":\"APRIL\"}", json);
+    }
+
+    @Test
+    public void whenSerializingEnumThenAllowNulls() {
+        var enumDTO = new EnumDTO(null);
+        var json = gson.toJson(enumDTO);
+        assertEquals("{}", json);
+    }
+
+    @Test
+    public void whenDeSerializingEnumThenUseName() {
+        var enumDTO = gson.fromJson("{\"month\":\"APRIL\"}", EnumDTO.class);
+        assertEquals(Month.APRIL, enumDTO.getMonth());
+    }
+
+    @Test
+    public void whenDeSerializingEnumThenAllowNulls() {
+        var enumDTO = gson.fromJson("{\"month\":null}", EnumDTO.class);
+        assertNull(enumDTO.getMonth());
+    }
+
+    @Test
+    public void whenDeSerializingWrongEnumThenThrow() {
+        JsonParseException thrown = assertThrows(JsonParseException.class, () -> gson.fromJson("{\"month\":\"APRmmIL\"}", EnumDTO.class));
+        assertEquals(IllegalArgumentException.class, thrown.getCause().getClass());
+        assertEquals("Can not deserialize APRmmIL to java.time.Month", thrown.getCause().getMessage());
+    }
+
+    @Test
+    public void whenDeSerializingAcceptCustomName() {
+        var obj = gson.fromJson(
+                "{\"customMonth\": \"MAYO\"}",
+                CustomEnumDTO.class);
+        assertEquals(CustomMonth.MAY, obj.getCustomMonth());
+    }
+    @Test
+    public void whenDeSerializingAcceptAlternativeName() {
+        var obj = gson.fromJson(
+                "{\"customMonth\": \"mayito\"}",
+                CustomEnumDTO.class);
+        assertEquals(CustomMonth.MAY, obj.getCustomMonth());
     }
 }

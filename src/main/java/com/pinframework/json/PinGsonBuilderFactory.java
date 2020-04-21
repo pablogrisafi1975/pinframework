@@ -18,6 +18,8 @@ public final class PinGsonBuilderFactory {
      * Makes a GsonBuilder that
      * serializes LocalDateTime as yyyy-MM-ddTHH:mm:ssZ
      * serializes Exception as type and message.
+     * serializes PinBadRequestException and descent as type, message, messageKey, fieldName, currentValue, destinationClassName
+     * throws an exception when an invalid Enum is deserialized
      * <p>
      * Returns a builder so you can call build() directly or keep on configuring things
      */
@@ -28,6 +30,7 @@ public final class PinGsonBuilderFactory {
                 .registerTypeAdapter(LocalDateTime.class, new PinLocalDateTimeTypeAdapter().nullSafe())
                 .registerTypeAdapter(LocalDate.class, new PinLocalDateTypeAdapter().nullSafe())
                 .registerTypeAdapter(ZonedDateTime.class, new PinZonedDateTimeTypeAdapter().nullSafe())
+                .registerTypeAdapterFactory(new PinEnumTypeAdapterFactory())
                 .registerTypeHierarchyAdapter(Exception.class,
                         (JsonSerializer<Exception>) (src, typeOfSrc, context) -> {
                             var json = new JsonObject();

@@ -7,6 +7,10 @@ import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +30,12 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.pinframework.converter.PinEnumParamConverter;
+import com.pinframework.converter.PinLocalDateParamConverter;
+import com.pinframework.converter.PinLocalDateTimeParamConverter;
+import com.pinframework.converter.PinLongParamConverter;
+import com.pinframework.converter.PinParamConverter;
+import com.pinframework.converter.PinZonedDateTimeParamConverter;
 import com.pinframework.exceptions.PinBadRequestException;
 import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
@@ -35,14 +45,19 @@ public class PinExchange {
     private static final Logger LOG = LoggerFactory.getLogger(PinExchange.class);
 
     private final HttpExchange httpExchange;
-    private Map<String, List<String>> queryParams;
     private Map<String, String> pathParams;
+    private Map<String, List<String>> queryParams;
     private Map<String, Object> postParams;
     private Map<String, List<String>> formParams;
     private Map<String, List<FileItem>> fileParams;
     private boolean streamParsed = false;
     private final List<String> pathParamNames;
     private final Gson gson;
+
+    private final PinLongParamConverter longParamConverter = new PinLongParamConverter();
+    private final PinLocalDateParamConverter localDateParamConverter = new PinLocalDateParamConverter();
+    private final PinLocalDateTimeParamConverter localDateTimeParamConverter = new PinLocalDateTimeParamConverter();
+    private final PinZonedDateTimeParamConverter zonedDateTimeParamConverter = new PinZonedDateTimeParamConverter();
 
     public PinExchange(HttpExchange httpExchange, List<String> pathParamNames, Gson gson) {
         this.httpExchange = httpExchange;
@@ -54,20 +69,20 @@ public class PinExchange {
         return httpExchange;
     }
 
-    public Map<String, List<String>> getQueryParams() {
-        if (queryParams == null) {
-            queryParams = Collections
-                    .unmodifiableMap(PinUtils.splitQuery(this.httpExchange.getRequestURI().getQuery()));
-        }
-        return queryParams;
-    }
-
     public Map<String, String> getPathParams() {
         if (pathParams == null) {
             pathParams = Collections.unmodifiableMap(PinUtils.splitPath(httpExchange.getRequestURI().getPath(),
                     httpExchange.getHttpContext().getPath(), pathParamNames));
         }
         return pathParams;
+    }
+
+    public Map<String, List<String>> getQueryParams() {
+        if (queryParams == null) {
+            queryParams = Collections
+                    .unmodifiableMap(PinUtils.splitQuery(this.httpExchange.getRequestURI().getQuery()));
+        }
+        return queryParams;
     }
 
     /**
@@ -122,8 +137,8 @@ public class PinExchange {
      *                {@link com.google.gson.reflect.TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                                                                                         Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                                                         </pre>
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      */
@@ -224,8 +239,9 @@ public class PinExchange {
         try {
             return fi.getString(StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            //TODO: log error
-            return fi.getString();
+            String bestEffort = fi.getString();
+            LOG.warn("Trying to parse file item as UTF-8, as a best effort {} was returned", bestEffort, e);
+            return bestEffort;
         }
     }
 
@@ -249,19 +265,6 @@ public class PinExchange {
         return httpExchange.getRequestHeaders().getFirst(PinContentType.CONTENT_TYPE);
     }
 
-    /**
-     * Only the first part of the value of content type header<br>
-     * , If header is multipart/form-data; charset=utf-8;
-     * boundary="98279749896q696969696" getRequestContentTypeParsed() returns
-     * multipart/form-data;
-     *
-     * @return
-     */
-    public String getRequestContentTypeParsed() {
-        String contentType = getRequestContentType();
-        return contentType == null ? null : contentType.split(";", -1)[0];
-    }
-
     public void writeResponseContentType(String contentType) {
         PinUtils.put(raw().getResponseHeaders(), PinContentType.CONTENT_TYPE, contentType);
     }
@@ -282,20 +285,45 @@ public class PinExchange {
         return httpExchange.getRequestHeaders().getFirst("Accept");
     }
 
+    /*
+     * path param
+     */
+
     public String getPathParam(String paramName) {
         return getPathParams().get(paramName);
     }
 
-    public Long getPathParamAsLong(String paramName) {
-        String paramValue = getPathParam(paramName);
-        Long value;
-        try {
-            value = Long.parseLong(paramValue);
-        } catch (Exception ex) {
-            throw new PinBadRequestException(paramName, paramValue, Long.class.getSimpleName(), ex);
+    public <T> T getPathParamConverted(String paramName, PinParamConverter<T> pinParamConverter) {
+        String paramValue = getPathParams().get(paramName);
+        if (paramValue == null) {
+            return null;
         }
-        return value;
+        return pinParamConverter.convert(paramName, paramValue);
     }
+
+    public Long getPathParamAsLong(String paramName) {
+        return getPathParamConverted(paramName, longParamConverter);
+    }
+
+    public <E extends Enum<E>> E getPathParamAsEnum(String paramName, Class<E> enumClass) {
+        return getPathParamConverted(paramName, new PinEnumParamConverter<>(enumClass));
+    }
+
+    public LocalDate getPathParamAsLocalDate(String paramName) {
+        return getPathParamConverted(paramName, localDateParamConverter);
+    }
+
+    public LocalDateTime getPathParamAsLocalDateTime(String paramName) {
+        return getPathParamConverted(paramName, localDateTimeParamConverter);
+    }
+
+    public ZonedDateTime getPathParamAsZonedDateTime(String paramName) {
+        return getPathParamConverted(paramName, zonedDateTimeParamConverter);
+    }
+
+    /*
+     * query param
+     */
 
     /**
      * @param paramName
@@ -305,5 +333,131 @@ public class PinExchange {
         List<String> stringList = getQueryParams().get(paramName);
         return stringList == null || stringList.isEmpty() ? null : stringList.get(0);
     }
+
+    public <T> T getQueryParamFirstConverted(String paramName, PinParamConverter<T> pinParamConverter) {
+        String paramValue = getQueryParamFirst(paramName);
+        if (paramValue == null) {
+            return null;
+        }
+        return pinParamConverter.convert(paramName, paramValue);
+    }
+
+    public <T> List<T> getQueryParamAsConvertedList(String paramName, PinParamConverter<T> pinParamConverter) {
+        List<String> stringList = getQueryParams().get(paramName);
+        if (stringList == null) {
+            return null;
+        }
+        return stringList.stream().map(string -> pinParamConverter.convert(paramName, string)).collect(Collectors.toList());
+    }
+
+    public Long getQueryParamFirstAsLong(String paramName) {
+        return getQueryParamFirstConverted(paramName, longParamConverter);
+    }
+
+    public List<Long> getQueryParamAsLongList(String paramName) {
+        return getQueryParamAsConvertedList(paramName, longParamConverter);
+    }
+
+    public <E extends Enum<E>> E getQueryParamFirstAsEnum(String paramName, Class<E> enumClass) {
+        return getQueryParamFirstConverted(paramName, new PinEnumParamConverter<>(enumClass));
+    }
+
+    public <E extends Enum<E>> List<E> getQueryParamAsEnumList(String paramName, Class<E> enumClass) {
+        return getQueryParamAsConvertedList(paramName, new PinEnumParamConverter<>(enumClass));
+    }
+
+    public LocalDate getQueryParamFirstAsLocalDate(String paramName) {
+        return getQueryParamFirstConverted(paramName, localDateParamConverter);
+    }
+
+    public List<LocalDate> getQueryParamAsLocalDateList(String paramName) {
+        return getQueryParamAsConvertedList(paramName, localDateParamConverter);
+    }
+
+    public LocalDateTime getQueryParamFirstAsLocalDateTime(String paramName) {
+        return getQueryParamFirstConverted(paramName, localDateTimeParamConverter);
+    }
+
+    public List<LocalDateTime> getQueryParamAsLocalDateTimeList(String paramName) {
+        return getQueryParamAsConvertedList(paramName, localDateTimeParamConverter);
+    }
+
+    public ZonedDateTime getQueryParamFirstAsZonedDateTime(String paramName) {
+        return getQueryParamFirstConverted(paramName, zonedDateTimeParamConverter);
+    }
+
+    public List<ZonedDateTime> getQueryParamAsZonedDateTimeList(String paramName) {
+        return getQueryParamAsConvertedList(paramName, zonedDateTimeParamConverter);
+    }
+
+    /*
+     * form param
+     */
+
+    /**
+     * @param paramName
+     * @return the first value for that param name or null if none is present
+     */
+    public String getFormParamFirst(String paramName) {
+        List<String> stringList = getFormParams().get(paramName);
+        return stringList == null || stringList.isEmpty() ? null : stringList.get(0);
+    }
+
+    public <T> T getFormParamFirstConverted(String paramName, PinParamConverter<T> pinParamConverter) {
+        String paramValue = getFormParamFirst(paramName);
+        if (paramValue == null) {
+            return null;
+        }
+        return pinParamConverter.convert(paramName, paramValue);
+    }
+
+    public <T> List<T> getFormParamAsConvertedList(String paramName, PinParamConverter<T> pinParamConverter) {
+        List<String> stringList = getFormParams().get(paramName);
+        if (stringList == null) {
+            return null;
+        }
+        return stringList.stream().map(string -> pinParamConverter.convert(paramName, string)).collect(Collectors.toList());
+    }
+
+    public Long getFormParamFirstAsLong(String paramName) {
+        return getFormParamFirstConverted(paramName, longParamConverter);
+    }
+
+    public List<Long> getFormParamAsLongList(String paramName) {
+        return getFormParamAsConvertedList(paramName, longParamConverter);
+    }
+
+    public <E extends Enum<E>> E getFormParamFirstAsEnum(String paramName, Class<E> enumClass) {
+        return getFormParamFirstConverted(paramName, new PinEnumParamConverter<>(enumClass));
+    }
+
+    public <E extends Enum<E>> List<E> getFormParamAsEnumList(String paramName, Class<E> enumClass) {
+        return getFormParamAsConvertedList(paramName, new PinEnumParamConverter<>(enumClass));
+    }
+
+    public LocalDate getFormParamFirstAsLocalDate(String paramName) {
+        return getFormParamFirstConverted(paramName, localDateParamConverter);
+    }
+
+    public List<LocalDate> getFormParamAsLocalDateList(String paramName) {
+        return getFormParamAsConvertedList(paramName, localDateParamConverter);
+    }
+
+    public LocalDateTime getFormParamFirstAsLocalDateTime(String paramName) {
+        return getFormParamFirstConverted(paramName, localDateTimeParamConverter);
+    }
+
+    public List<LocalDateTime> getFormParamAsLocalDateTimeList(String paramName) {
+        return getFormParamAsConvertedList(paramName, localDateTimeParamConverter);
+    }
+
+    public ZonedDateTime getFormParamFirstAsZonedDateTime(String paramName) {
+        return getFormParamFirstConverted(paramName, zonedDateTimeParamConverter);
+    }
+
+    public List<ZonedDateTime> getFormParamAsZonedDateTimeList(String paramName) {
+        return getFormParamAsConvertedList(paramName, zonedDateTimeParamConverter);
+    }
+
 
 }
