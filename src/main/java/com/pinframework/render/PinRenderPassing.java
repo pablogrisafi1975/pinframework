@@ -1,15 +1,11 @@
 package com.pinframework.render;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 
-import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
 
-public class PinRenderPassing implements PinRender {
+public class PinRenderPassing extends PinAbstractRender {
 
     @Override
     public String getType() {
@@ -17,15 +13,12 @@ public class PinRenderPassing implements PinRender {
     }
 
     @Override
-    public void render(Object obj, OutputStream outputStream) throws IOException {
-        if (obj == null) {
-            outputStream.close();
-        } else {
-            try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false)) {
-                pw.write(obj.toString());
-                pw.flush();
-            }
-        }
+    protected String getNewContentType() {
+        return null;
     }
 
+    @Override
+    protected void writeNonNullObject(BufferedWriter writer, Object obj) throws IOException {
+        writer.write(obj.toString());
+    }
 }

@@ -1,19 +1,12 @@
 package com.pinframework.render;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 import com.pinframework.PinContentType;
-import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
-import com.pinframework.PinUtils;
 
-public class PinRenderHtml implements PinRender {
+public class PinRenderHtml extends PinAbstractRender {
 
     @Override
     public String getType() {
@@ -21,20 +14,15 @@ public class PinRenderHtml implements PinRender {
     }
 
     @Override
-    public void render(Object obj, OutputStream outputStream) throws IOException {
-        if (obj == null) {
-            outputStream.close();
-        } else {
-            try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false)) {
-                pw.write(obj.toString());
-                pw.flush();
-            }
-        }
+    protected String getNewContentType() {
+        return PinContentType.TEXT_HTML_UTF8;
     }
 
     @Override
-    public void changeHeaders(Map<String, List<String>> responseHeaders) {
-        PinUtils.put(responseHeaders, PinContentType.CONTENT_TYPE, PinContentType.TEXT_HTML_UTF8);
+    protected void writeNonNullObject(BufferedWriter writer, Object obj) throws IOException {
+        writer.write(obj.toString());
     }
+
+
 
 }
