@@ -4,10 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -137,8 +137,8 @@ public class PinExchange {
      *                {@link com.google.gson.reflect.TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                                                                                                                         Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                                                                         </pre>
+     *                                                                                                                                                       Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                                                                                       </pre>
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      */
@@ -279,6 +279,28 @@ public class PinExchange {
         writeResponseContentType(PinContentType.APPLICATION_FORCE_DOWNLOAD);
         PinUtils.put(raw().getResponseHeaders(), "Content-Disposition",
                 "attachment; filename=\"" + URLEncoder.encode(fileName, StandardCharsets.UTF_8) + "\";");
+        try {
+            raw().sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
+        } catch (IOException e) {
+            throw new PinRuntimeException(e);
+        }
+    }
+
+    public void writeResponseContentLine(String line) {
+        try {
+            httpExchange.getResponseBody().write(line.getBytes(StandardCharsets.UTF_8));
+            httpExchange.getResponseBody().write(10); //newline
+        } catch (IOException e) {
+            throw new PinRuntimeException(e);
+        }
+    }
+
+    public void writeResponseContent(String line) {
+        try {
+            httpExchange.getResponseBody().write(line.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new PinRuntimeException(e);
+        }
     }
 
     public String getRequestAccept() {
@@ -458,6 +480,5 @@ public class PinExchange {
     public List<ZonedDateTime> getFormParamAsZonedDateTimeList(String paramName) {
         return getFormParamAsConvertedList(paramName, zonedDateTimeParamConverter);
     }
-
 
 }

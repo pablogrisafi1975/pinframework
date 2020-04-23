@@ -1,22 +1,22 @@
-package com.pinframework.impl;
+package com.pinframework.render;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 import com.pinframework.PinContentType;
-import com.pinframework.PinMimeType;
 import com.pinframework.PinRender;
 import com.pinframework.PinRenderType;
 import com.pinframework.PinUtils;
 
 /**
  * You need to manually set the file name, using<br>
- *     <code>ex.writeDownloadFileName(fileName);<code/>
+ * <code>ex.writeDownloadFileName(fileName);<code/><br>
+ * You need to manually write the content using<br>
+ *     <code>ex.writeResponseContentLine(...);<code/> or <code>ex.writeResponseContent(...);<code/>
+ *
  */
 public class PinRenderFileDownload implements PinRender {
 
@@ -27,8 +27,7 @@ public class PinRenderFileDownload implements PinRender {
 
     @Override
     public void render(Object obj, OutputStream outputStream) throws IOException {
-        PinUtils.copy((InputStream) obj, outputStream);
-
+        outputStream.close();
     }
 
     @Override

@@ -5,6 +5,14 @@ import java.util.Optional;
 
 public class PinResponse {
 
+    public static final PinResponse PIN_RESPONSE_DOWNLOAD = new PinResponse(HttpURLConnection.HTTP_OK, null) {
+        @Override
+        public boolean keepResponseOpen() {
+            return true;
+        }
+    };
+    public static final PinResponse PIN_RESPONSE_NOT_FOUND = new PinResponse(HttpURLConnection.HTTP_NOT_FOUND, null);
+    public static final PinResponse PIN_RESPONSE_OK_EMPTY = new PinResponse(HttpURLConnection.HTTP_OK, null);
     private final int status;
     private final Object obj;
 
@@ -22,7 +30,7 @@ public class PinResponse {
     }
 
     public static PinResponse ok() {
-        return new PinResponse(HttpURLConnection.HTTP_OK, null);
+        return PIN_RESPONSE_OK_EMPTY;
     }
 
     public static PinResponse notFound(Object obj) {
@@ -47,12 +55,12 @@ public class PinResponse {
      */
     public static PinResponse from(Object obj) {
         if (obj == null) {
-            return new PinResponse(HttpURLConnection.HTTP_NOT_FOUND, null);
+            return PIN_RESPONSE_NOT_FOUND;
         }
         if (obj instanceof Optional) {
             var opt = (Optional<?>) obj;
             if (opt.isEmpty()) {
-                return new PinResponse(HttpURLConnection.HTTP_NOT_FOUND, null);
+                return PIN_RESPONSE_NOT_FOUND;
             } else {
                 return new PinResponse(HttpURLConnection.HTTP_OK, opt.get());
             }
@@ -60,6 +68,10 @@ public class PinResponse {
 
         return new PinResponse(HttpURLConnection.HTTP_OK, obj);
 
+    }
+
+    public static PinResponse download() {
+        return PIN_RESPONSE_DOWNLOAD;
     }
 
     public int getStatus() {

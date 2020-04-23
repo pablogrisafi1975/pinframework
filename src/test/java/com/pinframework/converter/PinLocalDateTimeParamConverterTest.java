@@ -15,7 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import com.pinframework.exceptions.PinBadRequestException;
 
 public class PinLocalDateTimeParamConverterTest {
-    private PinLocalDateTimeParamConverter converter = new PinLocalDateTimeParamConverter();
+    private final PinLocalDateTimeParamConverter converter = new PinLocalDateTimeParamConverter();
 
     @ParameterizedTest
     @MethodSource
@@ -24,8 +24,9 @@ public class PinLocalDateTimeParamConverterTest {
         assertEquals(expected, result);
     }
 
-    static Stream<Arguments> whenConvertValidReturnConverted() {
+    static Stream<Arguments> whenConvertValidThenReturnConverted() {
         return Stream.of(
+                arguments("", null),
                 arguments("2020-03-07T11:22:33", LocalDateTime.of(2020, 3, 7, 11, 22, 33)),
                 arguments("2020-03-07T13:22:33.5", LocalDateTime.of(2020, 3, 7, 13, 22, 33, 500000000)),
                 arguments("2020-03-07T13:22:33.123456789", LocalDateTime.of(2020, 3, 7, 13, 22, 33, 123456789)),

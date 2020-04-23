@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.pinframework.exceptions.PinInitializationException;
-import com.pinframework.impl.PinRenderFileDownload;
-import com.pinframework.impl.PinRenderJson;
-import com.pinframework.impl.PinRenderNull;
-import com.pinframework.impl.PinRenderPassing;
-import com.pinframework.impl.PinRenderText;
+import com.pinframework.render.PinRenderFileDownload;
+import com.pinframework.render.PinRenderHtml;
+import com.pinframework.render.PinRenderJson;
+import com.pinframework.render.PinRenderNull;
+import com.pinframework.render.PinRenderPassing;
+import com.pinframework.render.PinRenderText;
 import com.pinframework.json.PinGsonBuilderFactory;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
@@ -240,6 +241,7 @@ public class PinServerBuilder {
 
         pinServer.registerRender(defaultRender.getType().equals(PinRenderType.JSON) ? defaultRender : new PinRenderJson(gson));
         pinServer.registerRender(new PinRenderText());
+        pinServer.registerRender(new PinRenderHtml());
         pinServer.registerRender(new PinRenderPassing());
         pinServer.registerRender(new PinRenderNull());
         pinServer.registerRender(new PinRenderFileDownload());

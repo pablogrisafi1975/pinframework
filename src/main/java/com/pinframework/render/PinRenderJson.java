@@ -1,4 +1,4 @@
-package com.pinframework.impl;
+package com.pinframework.render;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -26,14 +26,6 @@ public class PinRenderJson implements PinRender {
     @Override
     public String getType() {
         return PinRenderType.JSON;
-    }
-
-    public String render(Object model) {
-        return gson.toJson(model);
-    }
-
-    public void render(Object model, Appendable writer) {
-        gson.toJson(model, writer);
     }
 
     @Override

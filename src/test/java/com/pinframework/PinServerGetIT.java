@@ -33,54 +33,67 @@ public class PinServerGetIT {
         pinServer.onGet("text", ex -> PinResponse.ok("this is the text"), PinRenderType.TEXT);
         pinServer.onGet("v1/users/", PinResponse.ok(userService.list()));
         pinServer.onGet("v2/users/", ex -> {
-            //multiple representations for the same path and data. Possible, but disgusting.
             String expectedFirstName = ex.getQueryParamFirst("firstName");
             String expectedLastName = ex.getQueryParamFirst("lastName");
             List<UserDTO> users = userService.list(expectedFirstName, expectedLastName);
-            var accept = ex.getRequestAccept();
-            if (accept == null || accept.contains("application/json")) {
-                //I need to manually render the content
-                ex.writeResponseContentType(PinContentType.APPLICATION_JSON_UTF8);
-                return PinResponse.ok(pinServer.render(users, PinContentType.APPLICATION_JSON_UTF8));
-            }
-            if (accept.contains("text/html")) {
-                //in real world you must use a template library like freemaker
-                StringBuilder sb = new StringBuilder();
-                sb.append("<html><body><table><th><td>id</td><td>First Name</td><td>Last Name</td></th>");
-                for (UserDTO user : users) {
-                    sb.append("<tr>");
-                    sb.append("<td>" + user.getId() + "</td>");
-                    sb.append("<td>" + user.getFirstName() + "</td>");
-                    sb.append("<td>" + user.getLastName() + "</td>");
-                    sb.append("</tr>");
-                }
-                sb.append("</table></body></html>");
-
-                ex.writeResponseContentType(PinContentType.TEXT_HTML);
-
-                return PinResponse.ok(sb.toString());
-            }
-            if (accept.contains("text/plain") || accept.contains("application/octet-stream")) {
-                //in real world you must use a csv library like commons csv
-                StringBuilder sb = new StringBuilder();
-                sb.append("Id;First Name;Last Name\n");
-                for (UserDTO user : users) {
-                    sb.append(user.getId() + ";");
-                    sb.append(user.getFirstName() + ";");
-                    sb.append(user.getLastName() + "\n");
-                }
-
-                if (accept.contains("text/plain")) {
-                    ex.writeResponseContentType(PinContentType.TEXT_PLAIN_UTF8);
-                } else {
-
-                    ex.writeDownloadFileName("all-users.csv");
-                }
-
-                return PinResponse.ok(sb.toString());
-            }
             return PinResponse.ok(users);
-        }, PinRenderType.PASSING);
+        });
+
+        pinServer.onGet("v2/users-html/", ex -> {
+            String expectedFirstName = ex.getQueryParamFirst("firstName");
+            String expectedLastName = ex.getQueryParamFirst("lastName");
+            List<UserDTO> users = userService.list(expectedFirstName, expectedLastName);
+            //in real world you must use a template library like freemaker
+            StringBuilder sb = new StringBuilder();
+            sb.append("<html><body><table><th><td>id</td><td>First Name</td><td>Last Name</td></th>");
+            for (UserDTO user : users) {
+                sb.append("<tr>");
+                sb.append("<td>" + user.getId() + "</td>");
+                sb.append("<td>" + user.getFirstName() + "</td>");
+                sb.append("<td>" + user.getLastName() + "</td>");
+                sb.append("</tr>");
+            }
+            sb.append("</table></body></html>");
+            return PinResponse.ok(sb.toString());
+        }, PinRenderType.HTML);
+
+        pinServer.onGet("v2/users-text/", ex -> {
+            String expectedFirstName = ex.getQueryParamFirst("firstName");
+            String expectedLastName = ex.getQueryParamFirst("lastName");
+            List<UserDTO> users = userService.list(expectedFirstName, expectedLastName);
+            //in real world you must use a csv library like commons csv
+            StringBuilder sb = new StringBuilder();
+            sb.append("Id;First Name;Last Name\n");
+            for (UserDTO user : users) {
+                sb.append(user.getId() + ";");
+                sb.append(user.getFirstName() + ";");
+                sb.append(user.getLastName() + "\n");
+            }
+
+            return PinResponse.ok(sb.toString());
+        }, PinRenderType.TEXT);
+
+        pinServer.onGet("v2/users-download/", ex -> {
+            String expectedFirstName = ex.getQueryParamFirst("firstName");
+            String expectedLastName = ex.getQueryParamFirst("lastName");
+            List<UserDTO> users = userService.list(expectedFirstName, expectedLastName);
+
+            //write the file name first!
+            ex.writeDownloadFileName("all-users.csv");
+
+            //in real world you must use a csv library like commons csv
+            //note that you write directly to the output stream, so no memory is used
+            ex.writeResponseContentLine("Id;First Name;Last Name");
+            for (UserDTO user : users) {
+                ex.writeResponseContent(user.getId() + ";");
+                ex.writeResponseContent(user.getFirstName() + ";");
+                ex.writeResponseContentLine(user.getLastName());
+            }
+
+
+            return PinResponse.download();
+
+        }, PinRenderType.DOWNLOAD);
 
         pinServer.onGet("v1/users/:id", ex -> {
             Long id;
@@ -178,7 +191,7 @@ public class PinServerGetIT {
     @Test
     public void getV2UsersAsCSV() throws IOException {
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/v2/users-text")
                 .addHeader("Accept", "text/plain")
                 .build();
 
@@ -194,7 +207,7 @@ public class PinServerGetIT {
     @Test
     public void getV2UsersAsCSVFiltered() throws IOException {
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users?firstName=3")
+                .url("http://localhost:9999/v2/users-text?firstName=3")
                 .addHeader("Accept", "text/plain")
                 .build();
 
@@ -223,13 +236,13 @@ public class PinServerGetIT {
     @Test
     public void getV2UsersAsHTML() throws IOException {
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/v2/users-html")
                 .addHeader("Accept", "text/html")
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
-            assertEquals(PinContentType.TEXT_HTML, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals(PinContentType.TEXT_HTML_UTF8, response.header(PinContentType.CONTENT_TYPE));
             String body = response.body().string();
             assertTrue(body.startsWith("<html>"));
             assertTrue(body.endsWith("</html>"));
@@ -239,7 +252,7 @@ public class PinServerGetIT {
     @Test
     public void getV2UsersAsFile() throws IOException {
         Request request = new Request.Builder()
-                .url("http://localhost:9999/v2/users")
+                .url("http://localhost:9999/v2/users-download")
                 .addHeader("Accept", "application/octet-stream")
                 .build();
 

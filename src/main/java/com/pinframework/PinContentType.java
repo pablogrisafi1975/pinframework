@@ -20,9 +20,9 @@ public final class PinContentType {
      */
     public static final String TEXT_PLAIN_UTF8 = "text/plain; charset=utf-8";
     /**
-     * text/html
+     * text/html; charset=utf-8
      */
-    public static final String TEXT_HTML = "text/html";
+    public static final String TEXT_HTML_UTF8 = "text/html; charset=utf-8";
 
     /**
      * application/force-download

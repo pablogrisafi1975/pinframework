@@ -1,5 +1,6 @@
-package com.pinframework.impl;
+package com.pinframework.render;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -20,12 +21,14 @@ public class PinRenderText implements PinRender {
     }
 
     @Override
-    public void render(Object obj, OutputStream outputStream) {
-        if (obj != null) {
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false);
-            pw.write(obj.toString());
-            pw.flush();
-            pw.close();
+    public void render(Object obj, OutputStream outputStream) throws IOException {
+        if (obj == null) {
+            outputStream.close();
+        } else {
+            try (PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), false)) {
+                pw.write(obj.toString());
+                pw.flush();
+            }
         }
     }
 
