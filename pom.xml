@@ -256,6 +256,54 @@
             </build>
         </profile>
         <profile>
+            <id>fatjar2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.2.3</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactSet>
+                                        <excludes>
+                                            <exclude>META-INF/**/*.*</exclude>
+                                        </excludes>
+                                    </artifactSet>
+                                    <relocations>
+                                        <relocation>
+                                            <pattern>com.google.gson</pattern>
+                                            <shadedPattern>com.pinframework.shaded.com.google.gson</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.apache.commons</pattern>
+                                            <shadedPattern>com.pinframework.shaded.org.apache.commons</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>javax.servlet</pattern>
+                                            <shadedPattern>com.pinframework.shaded.javax.servlet</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.slf4j</pattern>
+                                            <shadedPattern>com.pinframework.shaded.org.slf4j</shadedPattern>
+                                        </relocation>
+                                    </relocations>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>check-coverage</id>
             <activation>
                 <property>
