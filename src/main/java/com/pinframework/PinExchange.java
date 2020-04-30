@@ -51,7 +51,6 @@ public class PinExchange {
     private Map<String, List<String>> formParams;
     private Map<String, List<FileItem>> fileParams;
     private boolean streamParsed = false;
-    private final List<String> pathParamNames;
     private final Gson gson;
 
     private final PinLongParamConverter longParamConverter = new PinLongParamConverter();
@@ -59,10 +58,10 @@ public class PinExchange {
     private final PinLocalDateTimeParamConverter localDateTimeParamConverter = new PinLocalDateTimeParamConverter();
     private final PinZonedDateTimeParamConverter zonedDateTimeParamConverter = new PinZonedDateTimeParamConverter();
 
-    public PinExchange(HttpExchange httpExchange, List<String> pathParamNames, Gson gson) {
+    public PinExchange(HttpExchange httpExchange, Gson gson, Map<String, String> pathParams) {
         this.httpExchange = httpExchange;
-        this.pathParamNames = pathParamNames;
         this.gson = gson;
+        this.pathParams = Collections.unmodifiableMap(pathParams);
     }
 
     public HttpExchange raw() {
@@ -70,10 +69,6 @@ public class PinExchange {
     }
 
     public Map<String, String> getPathParams() {
-        if (pathParams == null) {
-            pathParams = Collections.unmodifiableMap(PinUtils.splitPath(httpExchange.getRequestURI().getPath(),
-                    httpExchange.getHttpContext().getPath(), pathParamNames));
-        }
         return pathParams;
     }
 

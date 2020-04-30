@@ -55,16 +55,18 @@ public class PinServer {
 
     public PinServer on(String method, String path, PinHandler pinHandler, PinRender pinRender) {
         String fullPath = PinUtils.removeTrailingSlash(appContext + path);
-        List<String> contextAndPathParameters = PinUtils.contextAndPathParameters(appContext, path);
-        String contextPath = contextAndPathParameters.get(0);
-        List<String> pathParameterNames = contextAndPathParameters.subList(1, contextAndPathParameters.size());
-        PinAdapter pinAdapter = adaptersByPath.get(contextPath);
+        //This is needed because the way httpServer handles contexts. If it has a my-web-app context, said context
+        //will NOT handle a my-web-app/users/1234 request, so I need to register a my-web-app/users context
+        //So a unique my-web-app may (and probably will) internally have several contexts registered in the httpServer
+        String maximalPathValidAsContext = PinUtils.maximalPathValidAsContext(fullPath);
+
+        PinAdapter pinAdapter = adaptersByPath.get(maximalPathValidAsContext);
         if (pinAdapter != null) {
-            pinAdapter.put(method, fullPath, pathParameterNames, pinHandler, pinRender);
+            pinAdapter.put(method, fullPath, pinHandler, pinRender);
         } else {
-            pinAdapter = new PinAdapter(method, fullPath, pathParameterNames, pinHandler, pinRender, gson);
-            httpServer.createContext(contextPath, pinAdapter);
-            adaptersByPath.put(contextPath, pinAdapter);
+            pinAdapter = new PinAdapter(method, fullPath, pinHandler, pinRender, gson);
+            httpServer.createContext(maximalPathValidAsContext, pinAdapter);
+            adaptersByPath.put(maximalPathValidAsContext, pinAdapter);
         }
         return this;
     }

@@ -59,42 +59,6 @@ public class PinUtils {
         final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
         return new SimpleImmutableEntry<>(key, value);
     }
-
-    /**
-     * appContext should look like <br>
-     * admin<br>
-     * admin/user<br>
-     * admin/user/:userId<br>
-     * admin/office/:officeId/:userId<br>
-     * so <br>
-     * don't start or finish with / <br>
-     * path parameters should be :name <br>
-     * once you put a path parameter, everything else should be a path
-     * parameters<br>
-     * so this admin/office/:officeId/:userId is valid , but<br>
-     * this admin/office/:officeId/users/:userId is invalid<br>
-     * and this admin/office/help:officeId/users/:userId is invalid<br>
-     */
-    public static List<String> contextAndPathParameters(String appContext, String path) {
-        int firstColonIndex = path.indexOf(':');
-        if (firstColonIndex == -1) {
-            String fullContext = appContext + path;
-            return Collections.singletonList(removeTrailingSlash(fullContext));
-        }
-        String fullContext = appContext + path.substring(0, firstColonIndex - 1); // -1
-        // to
-        // remove
-        // finishing
-        // /
-        String fullPaths = path.substring(firstColonIndex);
-        List<String> pathParameters = Arrays.stream(fullPaths.split("/", -1)).map(s -> s.substring(1))
-                .collect(Collectors.toList());
-        List<String> result = new ArrayList<>();
-        result.add(fullContext);
-        result.addAll(pathParameters);
-        return result;
-    }
-
     public static String removeTrailingSlash(String string) {
         if (string == null) {
             return null;
@@ -124,5 +88,13 @@ public class PinUtils {
 
     public static void put(Map<String, List<String>> map, String key, String value) {
         map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+    }
+
+    public static String maximalPathValidAsContext(String fullPath) {
+        int indexOfColon = fullPath.indexOf(':');
+        if(indexOfColon == -1){
+            return fullPath;
+        }
+        return fullPath.substring(0, indexOfColon - 1); //-1 to remove the last /
     }
 }

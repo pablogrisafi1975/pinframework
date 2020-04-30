@@ -26,7 +26,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PinServerParsingIT {
+public class PinServerParsingBodyIT {
 
     private PinServer pinServer;
 
