@@ -336,6 +336,42 @@
                                 <configuration>
                                     <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
                                     <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                                    <rules>
+                                        <rule>
+                                            <element>CLASS</element>
+                                            <includes>
+                                                <include>com.pinframework.json.*</include>
+                                                <include>com.pinframework.converter.*</include>
+                                                <include>com.pinframework.render.*</include>
+                                            </includes>
+                                            <excludes>
+                                                <!-- both files are almost copied from Google, both have non-accessible code-->
+                                                <exclude>com.pinframework.json.PinEnum*</exclude>
+                                            </excludes>
+                                            <limits>
+                                                <limit>
+                                                    <counter>INSTRUCTION</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>1.00</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>INSTRUCTION</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>CLASS</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>METHOD</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
                                 </configuration>
                             </execution>
                             <execution>
@@ -353,51 +389,50 @@
                                 <phase>post-integration-test</phase>
                                 <goals>
                                     <goal>report</goal>
+                                    <goal>check</goal>
                                 </goals>
                                 <configuration>
                                     <dataFile>${project.build.directory}/coverage-reports/jacoco-it.exec</dataFile>
                                     <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                                    <rules>
+                                        <rule>
+                                            <element>CLASS</element>
+                                            <includes>
+                                                <include>com.pinframework.json.*</include>
+                                                <include>com.pinframework.converter.*</include>
+<!--                                                <include>com.pinframework.render.*</include> falta pinrendernull y passing-->
+                                            </includes>
+                                            <excludes>
+                                                <!-- both files are almost copied from Google, both have non-accessible code-->
+                                                <exclude>com.pinframework.json.PinEnum*</exclude>
+                                            </excludes>
+                                            <limits>
+                                                <limit>
+                                                    <counter>INSTRUCTION</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>1.00</minimum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>INSTRUCTION</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>CLASS</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                                <limit>
+                                                    <counter>METHOD</counter>
+                                                    <value>MISSEDCOUNT</value>
+                                                    <maximum>0</maximum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
                                 </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>CLASS</element>
-                                    <includes>
-                                        <include>com.pinframework.json.*</include>
-                                        <include>com.pinframework.converter.*</include>
-                                        <include>com.pinframework.render.*</include>
-                                    </includes>
-                                    <excludes>
-                                        <!-- both files are almost copied from Google, both have non-accessible code-->
-                                        <exclude>com.pinframework.json.PinEnum*</exclude>
-                                    </excludes>
-                                    <limits>
-                                        <limit>
-                                            <counter>INSTRUCTION</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>1.00</minimum>
-                                        </limit>
-                                        <limit>
-                                            <counter>INSTRUCTION</counter>
-                                            <value>MISSEDCOUNT</value>
-                                            <maximum>0</maximum>
-                                        </limit>
-                                        <limit>
-                                            <counter>CLASS</counter>
-                                            <value>MISSEDCOUNT</value>
-                                            <maximum>0</maximum>
-                                        </limit>
-                                        <limit>
-                                            <counter>METHOD</counter>
-                                            <value>MISSEDCOUNT</value>
-                                            <maximum>0</maximum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

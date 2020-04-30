@@ -139,6 +139,78 @@ public class PinServerParsingBodyIT {
     }
 
     @Test
+    public void postFormParamSimpleWrongLocalDate() throws IOException {
+        final RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("longValue", "333")
+                .addFormDataPart("dayOfWeek", "MONDAY")
+                .addFormDataPart("localDate", "2020-0x1-02")
+                .addFormDataPart("localDateTime", "2020-01-02T03:04:05")
+                .addFormDataPart("zonedDateTime", "2020-01-02T03:04:05-04:00")
+                .build();
+
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/form-params-simple")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field localDate with value 2020-0x1-02 can not be converted to LocalDate\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"localDate\",\"currentValue\":\"2020-0x1-02\",\"destinationClassName\":\"LocalDate\"}",
+                    response.body().string());
+        }
+    }
+
+    @Test
+    public void postFormParamSimpleWrongLocalDateTime() throws IOException {
+        final RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("longValue", "333")
+                .addFormDataPart("dayOfWeek", "MONDAY")
+                .addFormDataPart("localDate", "2020-01-02")
+                .addFormDataPart("localDateTime", "2020-01-02T03:04:05Z")
+                .addFormDataPart("zonedDateTime", "2020-01-02T03:04:05-04:00")
+                .build();
+
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/form-params-simple")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field localDateTime with value 2020-01-02T03:04:05Z can not be converted to LocalDateTime\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"localDateTime\",\"currentValue\":\"2020-01-02T03:04:05Z\",\"destinationClassName\":\"LocalDateTime\"}",
+                    response.body().string());
+        }
+    }
+
+    @Test
+    public void postFormParamSimpleWrongZonedDateTime() throws IOException {
+        final RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("longValue", "333")
+                .addFormDataPart("dayOfWeek", "MONDAY")
+                .addFormDataPart("localDate", "2020-01-02")
+                .addFormDataPart("localDateTime", "2020-01-02T03:04:05")
+                .addFormDataPart("zonedDateTime", "2020-01-02T03:04:05")
+                .build();
+
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/form-params-simple")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("{\"type\":\"com.pinframework.exceptions.PinBadRequestException\",\"message\":\"The field zonedDateTime with value 2020-01-02T03:04:05 can not be converted to ZonedDateTime\",\"messageKey\":\"CAN_NOT_CONVERT\",\"fieldName\":\"zonedDateTime\",\"currentValue\":\"2020-01-02T03:04:05\",\"destinationClassName\":\"ZonedDateTime\"}",
+                    response.body().string());
+        }
+    }
+
+    @Test
     public void postFormParamSimpleNoLocalDate() throws IOException {
         final RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
