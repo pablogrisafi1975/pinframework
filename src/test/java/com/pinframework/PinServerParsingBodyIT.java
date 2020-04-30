@@ -336,6 +336,35 @@ public class PinServerParsingBodyIT {
     }
 
     @Test
+    public void postBodyParamAllNullButDeclared() throws IOException {
+        final RequestBody body = RequestBody
+                .create("{\n"
+                                + "    \"longValue\": null,\n"
+                                + "    \"dayOfWeek\": null,\n"
+                                + "    \"localDate\": null,\n"
+                                + "    \"localDateTime\": null,\n"
+                                + "    \"zonedDateTime\": null\n"
+                                + "}",
+                        MediaType.get("application/json"));
+
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/body-params")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
+            SpecialParserDTO obj = gson.fromJson(response.body().string(), SpecialParserDTO.class);
+            assertNull(obj.getLongValue());
+            assertNull(obj.getDayOfWeek());
+            assertNull(obj.getLocalDate());
+            assertNull(obj.getLocalDateTime());
+            assertNull(obj.getZonedDateTime());
+        }
+    }
+
+    @Test
     public void postBodyParamAllNull() throws IOException {
         final RequestBody body = RequestBody
                 .create("{}",
