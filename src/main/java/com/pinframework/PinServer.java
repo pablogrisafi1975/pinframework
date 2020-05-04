@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.pinframework.exceptions.PinBadRequestException;
+import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -157,9 +159,9 @@ public class PinServer {
 
             if (is == null) {
                 ex.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0);
-                ex.getResponseBody().write(("File '" + filename + "' not found in '" + resourceFolder + "'")
+                ex.getResponseBody().write(("File '" + filename + "' not found")
                         .getBytes(StandardCharsets.UTF_8));
-                LOG.error("File not found on request uri '{}'", ex.getRequestURI().getPath());
+                LOG.warn("File not found for request uri '{}'", ex.getRequestURI().getPath());
             } else {
 
                 ex.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
@@ -179,6 +181,8 @@ public class PinServer {
             File file = new File(externalFolder, filename).getCanonicalFile();
             if (file.getAbsolutePath().indexOf(externalFolder.getAbsolutePath()) != 0) {
                 LOG.error("Error on filename '{}', directory traversal attack", filename);
+                //DO NOT return a more specific message, give no clues about traversal attack being detected
+                //should look like a standard file not found from the outside
                 return null;
             }
             if (file.exists()) {
@@ -225,12 +229,5 @@ public class PinServer {
 
         return defaultRender;
 
-    }
-
-    public String render(Object obj, String renderType) throws Exception {
-        PinRender render = findRender(renderType);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        render.render(obj, byteArrayOutputStream);
-        return byteArrayOutputStream.toString(StandardCharsets.UTF_8);
     }
 }

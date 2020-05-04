@@ -85,9 +85,9 @@ public class PinServerGetStaticIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.code());
             assertEquals(PinContentType.TEXT_HTML_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("Error on filename 'yy/../../index2.html', directory traversal attack", response.body().string());
+            assertEquals("File 'yy/../../index2.html' not found", response.body().string());
         }
     }
 
@@ -100,7 +100,7 @@ public class PinServerGetStaticIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.code());
             assertEquals(PinContentType.TEXT_HTML_UTF8, response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("File 'not-found.html' not found in 'static/'", response.body().string());
+            assertEquals("File 'not-found.html' not found", response.body().string());
         }
     }
 
@@ -139,7 +139,7 @@ public class PinServerGetStaticIT {
 
     @Test
     public void getFromWebJarNotFound() throws IOException {
-        //envjs 1.2 is declared in pom.xml as test dependency
+        //envjs 1.2 is declared in pom.xml as test dependency, but has no gif file
         Request request = new Request.Builder()
                 .url("http://localhost:9999/webjars/envjs/1.2/env.rhino.gif")
                 .build();
@@ -147,7 +147,7 @@ public class PinServerGetStaticIT {
         try (Response response = client.newCall(request).execute()) {
             assertEquals(HttpURLConnection.HTTP_NOT_FOUND, response.code());
             assertEquals("image/gif", response.header(PinContentType.CONTENT_TYPE));
-            assertEquals("File '/envjs/1.2/env.rhino.gif' not found in 'META-INF/resources/webjars'", response.body().string());
+            assertEquals("File '/envjs/1.2/env.rhino.gif' not found", response.body().string());
         }
     }
 
