@@ -28,7 +28,7 @@ public class PinMimeType {
         MAP.put("gif", "image/gif");
         MAP.put("gz", "application/x-gzip");
         MAP.put("hqx", "application/mac-binhex40");
-        MAP.put("html", "text/html");
+        MAP.put("html", "text/html; charset=utf-8");
         MAP.put("jar", "application/java-archive");
         MAP.put("jpg", "image/jpeg");
         MAP.put("js", "application/javascript");

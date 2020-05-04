@@ -44,8 +44,6 @@ public class PinServer {
             httpServer.createContext(this.appContext + "webjars", (ex -> resourceFolder(ex, "META-INF/resources/webjars", null)));
         }
         httpServer.createContext(this.appContext, (ex -> {
-            // File externalPath = new
-            // File("/home/pablogrisafi/workspaces/op-txfinder/op-txfinder-pin/external");
             resourceFolder(ex, "static/", externalFolderCanonical);
         }));
         this.defaultRender = defaultRender;
@@ -136,16 +134,23 @@ public class PinServer {
     }
 
     private void resourceFolder(HttpExchange ex, String resourceFolder, File externalFolder) throws IOException {
+
+        String filename = ex.getRequestURI().getPath().replaceFirst("\\Q" + ex.getHttpContext().getPath() + "\\E", "");
+        if (filename.trim().length() == 0) {
+            filename = "index.html";
+        }
+
+        String mimeType = PinMimeType.fromFileName(filename);
+        ex.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
+
         if (!"GET".equals(ex.getRequestMethod())) {
             LOG.error("Error trying to access '{}', wrong method '{}'", ex.getRequestURI().getPath(),
                     ex.getRequestMethod());
             ex.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
+            ex.getResponseBody().write(("Error trying to access '" + ex.getRequestURI().getPath() +"', wrong method '" + ex.getRequestMethod() +"'")
+                    .getBytes(StandardCharsets.UTF_8));
             ex.close();
             return;
-        }
-        String filename = ex.getRequestURI().getPath().replaceFirst("\\Q" + ex.getHttpContext().getPath() + "\\E", "");
-        if (filename.trim().length() == 0) {
-            filename = "index.html";
         }
 
         try (InputStream is = findInputStream(resourceFolder, externalFolder, filename)) {
@@ -156,8 +161,7 @@ public class PinServer {
                         .getBytes(StandardCharsets.UTF_8));
                 LOG.error("File not found on request uri '{}'", ex.getRequestURI().getPath());
             } else {
-                String mimeType = PinMimeType.fromFileName(filename);
-                ex.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
+
                 ex.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
 
                 PinUtils.copy(is, ex.getResponseBody());
