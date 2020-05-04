@@ -18,4 +18,6 @@
 * By default, json output is assumed with status = 200, if object is null or optional.empty status = 404
 * las slash is ignored: /users/ or /users route to the same handler
 * Use accept header to determine render!
+* register mime type for files
+* On name collision in static files: external files > resource files > webjar files, soy you can fix stuff easily
 

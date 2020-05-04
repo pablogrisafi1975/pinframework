@@ -73,13 +73,7 @@ public class PinMimeType {
         MAP.put("zip", "application/zip,application/x-compressed-zip");
     }
 
-    public static void register(String extension, String mimeType) {
-        MAP.put(extension, mimeType);
+    public static Map<String, String> cloneMap() {
+        return new HashMap<>(MAP);
     }
-
-    public static String fromFileName(String filename) {
-        String fileExtension = filename.replaceAll("^.*\\.(.*)$", "$1");
-        return MAP.getOrDefault(fileExtension, "application/octet-stream");
-    }
-
 }

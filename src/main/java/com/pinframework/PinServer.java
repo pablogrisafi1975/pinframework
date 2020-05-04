@@ -1,6 +1,5 @@
 package com.pinframework;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,15 +7,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.pinframework.exceptions.PinBadRequestException;
-import com.pinframework.exceptions.PinRuntimeException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -35,6 +31,8 @@ public class PinServer {
     private final Map<String, PinRender> rendersByType = new HashMap<>();
     private final PinRender defaultRender;
     private final Gson gson;
+    private final Map<String, String> mimeTypeByExtension = PinMimeType.cloneMap();
+
 
     PinServer(HttpServer httpServer, boolean restrictedCharset, String appContext, boolean webjarsSupportEnabled,
             File externalFolderCanonical, PinRender defaultRender, Gson gson) {
@@ -142,7 +140,7 @@ public class PinServer {
             filename = "index.html";
         }
 
-        String mimeType = PinMimeType.fromFileName(filename);
+        String mimeType = fromFileName(filename);
         ex.getResponseHeaders().add(PinContentType.CONTENT_TYPE, mimeType);
 
         if (!"GET".equals(ex.getRequestMethod())) {
@@ -229,5 +227,14 @@ public class PinServer {
 
         return defaultRender;
 
+    }
+
+    public void registerMimeType(String extension, String mimeType) {
+        this.mimeTypeByExtension.put(extension, mimeType);
+    }
+
+    private String fromFileName(String filename) {
+        String fileExtension = filename.replaceAll("^.*\\.(.*)$", "$1");
+        return mimeTypeByExtension.getOrDefault(fileExtension, "application/octet-stream");
     }
 }

@@ -34,6 +34,11 @@ public class PinServerGetStaticIT {
 
         pinServer = new PinServerBuilder().externalFolder(tempDirectory.toAbsolutePath().toString()).webjarsSupportEnabled(true).build();
 
+        Path customFilePath = Path.of(tempDirectory.toString(), "custom.xxx");
+        Files.createFile(customFilePath);
+        Files.write(customFilePath, "custom.xxx content".getBytes(StandardCharsets.UTF_8));
+        pinServer.registerMimeType("xxx", "custom/xxx");
+
         pinServer.onGet("constant-text", PinResponse.ok("this is the constant text"), PinRenderType.TEXT);
         pinServer.start();
     }
@@ -61,6 +66,19 @@ public class PinServerGetStaticIT {
             assertEquals(HttpURLConnection.HTTP_OK, response.code());
             assertEquals(PinContentType.TEXT_HTML_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("<html><h1>Index</h1></html>", response.body().string());
+        }
+    }
+
+    @Test
+    public void getFromExternalFolderCustomMimeType() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://localhost:9999/custom.xxx")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals("custom/xxx", response.header(PinContentType.CONTENT_TYPE));
+            assertEquals("custom.xxx content", response.body().string());
         }
     }
 
