@@ -53,7 +53,7 @@ public class PinResponse {
      * if the object is non empty optional, status is 200=OK and the wrapped object is rendered<br>
      * if the object is non null, status is 200=OK and the object is rendered
      */
-    public static PinResponse from(Object obj) {
+    public static PinResponse okOrNotFound(Object obj) {
         if (obj == null) {
             return PIN_RESPONSE_NOT_FOUND;
         }
@@ -72,6 +72,10 @@ public class PinResponse {
 
     public static PinResponse download() {
         return PIN_RESPONSE_DOWNLOAD;
+    }
+
+    public static PinResponse created(Object obj) {
+        return new PinResponse(HttpURLConnection.HTTP_CREATED, obj);
     }
 
     public int getStatus() {

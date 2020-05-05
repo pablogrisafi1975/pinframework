@@ -55,13 +55,13 @@ public class PinServerPostIT {
 
             var user = new UserDTO(null, firstName, lastName, tags);
 
-            return PinResponse.ok(userService.savNew(user));
+            return PinResponse.created(userService.savNew(user));
         });
         pinServer.onPost("json/v2/users", ex -> {
             //post a json as anything, Content-Type header will be ignored.
             //this is how services works normally
             var user = ex.getBodyAs(UserDTO.class);
-            return PinResponse.ok(userService.savNew(user));
+            return PinResponse.created(userService.savNew(user));
         });
         pinServer.onPost("json/v2/users-multi", ex -> {
             //post a json as anything, Content-Type header will be ignored.
@@ -69,7 +69,7 @@ public class PinServerPostIT {
             List<UserDTO> users = ex.getBodyAs(new TypeToken<List<UserDTO>>() {
             }.getType());
 
-            return PinResponse.ok(users.stream().map(user -> userService.savNew(user)).collect(Collectors.toList()));
+            return PinResponse.created(users.stream().map(user -> userService.savNew(user)).collect(Collectors.toList()));
         });
         pinServer.onPost("form/users", ex -> {
             //post as x-www-form-urlencoded or as multipart, parsed as a map<String, List<String>>
@@ -91,7 +91,7 @@ public class PinServerPostIT {
                         new String(fileItem2.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
             }
 
-            return PinResponse.ok(userService.savNew(user));
+            return PinResponse.created(userService.savNew(user));
 
         });
 
@@ -178,7 +178,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
                     response.body().string());
@@ -215,7 +215,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]}",
                     response.body().string());
@@ -250,7 +250,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("[{\"id\":10,\"firstName\":\"firstName100\",\"lastName\":\"lastName100\",\"tags\":[\"a\",\"b\"]},{\"id\":11,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"c\",\"d\"]}]",
                     response.body().string());
@@ -267,7 +267,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"b\"]}",
                     response.body().string());
@@ -307,7 +307,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("{\"id\":10,\"firstName\":\"firstName101\",\"lastName\":\"lastName101\",\"tags\":[\"a\",\"c\"]}",
                     response.body().string());
@@ -352,7 +352,7 @@ public class PinServerPostIT {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            assertEquals(HttpURLConnection.HTTP_OK, response.code());
+            assertEquals(HttpURLConnection.HTTP_CREATED, response.code());
             assertEquals(PinContentType.APPLICATION_JSON_UTF8, response.header(PinContentType.CONTENT_TYPE));
             assertEquals("{\"id\":10,\"firstName\":\"this is the file name 1\",\"lastName\":\"this is the file content 2\"}",
                     response.body().string());

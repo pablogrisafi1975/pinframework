@@ -119,14 +119,14 @@ public class PinServerGetIT {
                 return PinResponse.badRequest(e);
             }
 
-            return PinResponse.from(userService.get(id));
+            return PinResponse.okOrNotFound(userService.get(id));
 
         });
         //this is an even shorter version of user service. Is less code, but you can't return a message when not found and
         //you have a fixed message on bad request
         pinServer.onGet("v3/users/:id", ex -> {
             Long id = ex.getPathParamAsLong("id");
-            return PinResponse.from(userService.get(id));
+            return PinResponse.okOrNotFound(userService.get(id));
 
         });
         pinServer.start();
